@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.6.26)  26 JUN 2022 22:01
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.6.26)  27 JUN 2022 01:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -615,7 +615,7 @@ Package hyperref Info: Link coloring OFF on input line 126.
 
  (./titulka.tex
 Package hyperref Info: Option `pageanchor' set `false' on input line 6.
-<../img/logo-cs.pdf, id=83, 506.4591pt x 156.49065pt>
+<../img/logo-cs.pdf, id=87, 506.4591pt x 156.49065pt>
 File: ../img/logo-cs.pdf Graphic file (type pdf)
 <use ../img/logo-cs.pdf>
 Package pdftex.def Info: ../img/logo-cs.pdf  used on input line 10.
@@ -809,17 +809,17 @@ File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 
 
 ] [9]
-<../img/ukazka-obr01.pdf, id=229, 433.62pt x 433.62pt>
+<../img/ukazka-obr01.pdf, id=237, 433.62pt x 433.62pt>
 File: ../img/ukazka-obr01.pdf Graphic file (type pdf)
 <use ../img/ukazka-obr01.pdf>
 Package pdftex.def Info: ../img/ukazka-obr01.pdf  used on input line 156.
 (pdftex.def)             Requested size: 398.3596pt x 398.3596pt.
-<../img/ukazka-obr02.pdf, id=230, 433.62pt x 433.62pt>
+<../img/ukazka-obr02.pdf, id=238, 433.62pt x 433.62pt>
 File: ../img/ukazka-obr02.pdf Graphic file (type pdf)
 <use ../img/ukazka-obr02.pdf>
 Package pdftex.def Info: ../img/ukazka-obr02.pdf  used on input line 165.
 (pdftex.def)             Requested size: 398.3596pt x 398.3596pt.
-<../img/ukazka-obr03.pdf, id=231, 433.62pt x 614.295pt>
+<../img/ukazka-obr03.pdf, id=239, 433.62pt x 614.295pt>
 File: ../img/ukazka-obr03.pdf Graphic file (type pdf)
 <use ../img/ukazka-obr03.pdf>
 Package pdftex.def Info: ../img/ukazka-obr03.pdf  used on input line 171.
@@ -847,16 +847,17 @@ Kapitola 4.
 ]
 \openout2 = `literatura.aux'.
 
- (./literatura.tex
-No file prace.bbl.
-) (./prace.lof)
+ (./literatura.tex (./prace.bbl)) [16
+
+
+
+
+] (./prace.lof)
 \tf@lof=\write7
 \openout7 = `prace.lof'.
 
- [16
 
-
-
+[17
 
 
 
@@ -864,13 +865,13 @@ No file prace.bbl.
 \tf@lot=\write8
 \openout8 = `prace.lot'.
 
- [17
+ [18
 
-] [18
+] [19
 
 ]
 P\v {r}\'{\i }loha A.
-[19
+[20
 
 ]
 
@@ -879,44 +880,45 @@ Package natbib Warning: There were undefined citations.
 (./prace.aux (./titulka.aux) (./uvod.aux) (./kap01.aux) (./kap02.aux)
 (./kap03.aux) (./kap04.aux) (./zaver.aux) (./literatura.aux))
 Package rerunfilecheck Info: File `prace.out' has not changed.
-(rerunfilecheck)             Checksum: 03BB70C97851BF3AB6B88289A8B662E2;2456.
+(rerunfilecheck)             Checksum: 0E314E3EF924358A706DD89A14DA83B4;2638.
  ) 
 Here is how much of TeX's memory you used:
- 16643 strings out of 478037
- 261287 string characters out of 5836033
- 556366 words of memory out of 5000000
- 34618 multiletter control sequences out of 15000+600000
- 586571 words of font info for 104 fonts, out of 8000000 for 9000
+ 16656 strings out of 478037
+ 261450 string characters out of 5836033
+ 557395 words of memory out of 5000000
+ 34625 multiletter control sequences out of 15000+600000
+ 589366 words of font info for 105 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  89i,19n,93p,1006b,2379s stack positions out of 10000i,1000n,20000p,200000b,200000s
-{d:/Program Files/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{d:/Pr
-ogram Files/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{d:/Program Fi
+{d:/Program Files/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{d:/Pr
+ogram Files/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{d:/Program Fi
 les/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{d:/Program Files/
 texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{d:/Program Files/texlive
 /2022/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{d:/Program Files/texlive/202
 2/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}<d:/Program Files/texlive/2022/te
 xmf-dist/fonts/type1/public/lm/lmbx12.pfb><d:/Program Files/texlive/2022/texmf-
-dist/fonts/type1/public/lm/lmex10.pfb><d:/Program Files/texlive/2022/texmf-dist
-/fonts/type1/public/lm/lmmi12.pfb><d:/Program Files/texlive/2022/texmf-dist/fon
-ts/type1/public/lm/lmmi7.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/ty
-pe1/public/lm/lmmi8.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/p
-ublic/lm/lmmib10.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/publ
-ic/lm/lmr10.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm
-/lmr12.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmr1
-7.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmr8.pfb>
-<d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmri10.pfb><d:/
-Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmri12.pfb><d:/Prog
-ram Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmss12.pfb><d:/Program 
-Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmsso12.pfb><d:/Program Fil
-es/texlive/2022/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><d:/Program Files/t
-exlive/2022/texmf-dist/fonts/type1/public/lm/lmsy8.pfb><d:/Program Files/texliv
-e/2022/texmf-dist/fonts/type1/public/lm/lmtt10.pfb><d:/Program Files/texlive/20
-22/texmf-dist/fonts/type1/public/lm/lmtt12.pfb><d:/Program Files/texlive/2022/t
-exmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on prace.pdf (23 pages, 691908 bytes).
+dist/fonts/type1/public/lm/lmcsc10.pfb><d:/Program Files/texlive/2022/texmf-dis
+t/fonts/type1/public/lm/lmex10.pfb><d:/Program Files/texlive/2022/texmf-dist/fo
+nts/type1/public/lm/lmmi12.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/
+type1/public/lm/lmmi7.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1
+/public/lm/lmmi8.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/publ
+ic/lm/lmmib10.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/
+lm/lmr10.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lm
+r12.pfb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmr17.p
+fb><d:/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmr8.pfb><d:
+/Program Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmri10.pfb><d:/Pro
+gram Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmri12.pfb><d:/Program
+ Files/texlive/2022/texmf-dist/fonts/type1/public/lm/lmss12.pfb><d:/Program Fil
+es/texlive/2022/texmf-dist/fonts/type1/public/lm/lmsso12.pfb><d:/Program Files/
+texlive/2022/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><d:/Program Files/texl
+ive/2022/texmf-dist/fonts/type1/public/lm/lmsy8.pfb><d:/Program Files/texlive/2
+022/texmf-dist/fonts/type1/public/lm/lmtt10.pfb><d:/Program Files/texlive/2022/
+texmf-dist/fonts/type1/public/lm/lmtt12.pfb><d:/Program Files/texlive/2022/texm
+f-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on prace.pdf (24 pages, 719315 bytes).
 PDF statistics:
- 436 PDF objects out of 1000 (max. 8388607)
- 328 compressed objects within 4 object streams
- 58 named destinations out of 1000 (max. 500000)
- 185 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 456 PDF objects out of 1000 (max. 8388607)
+ 345 compressed objects within 4 object streams
+ 61 named destinations out of 1000 (max. 500000)
+ 193 words of extra memory for PDF output out of 10000 (max. 10000000)
 
