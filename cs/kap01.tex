@@ -6,9 +6,49 @@ V~této kapitole si zadefinujeme požadavky na funkcionalitu naší aplikace. Ta
 
 \section{Požadavky aplikace}
 
+Nyní si rozebereme požadavky na naši aplikaci, které můžeme rozdělit do skupin funkčních a nefunkčních požadavků. Funkční požadavky popisují konkrétní funkcionalitu systému, zabývají se vstupem od uživatele a prezentací výstupu. Díky tomu je lze poměrně snadno definovat a testovat jejich naplnění ve funkční aplikaci. Nefunkční požadavky se naopak na konkrétní vstup nevážou a místo toho popisují vlastnosti a omezení, které by měl systém splňovat. Zjednodušeně lze říci, že funkční požadavky popisují, co má systém dělat, zatímco nefunkční požadavky specifikují, jaký má systém být \citep{app-requirements}.
+
+\subsection{Funkční požadavky}
+
+Následuje výčet funkcionalit, které by aplikace svým uživatelům měla nabídnout. Uživatelé mohou mít různé role od běžného návštěvníka stránky po administrátora nebo vývojáře integrujícího data do jiného systému.
+
+\subsubsection{Běžný uživatel}
+
+\begin{enumerate}
+    \item Aplikace poskytuje uživatelské rozhraní pro vyhledávání receptů na základě ingrediencí, klíčových slov, času přípravy, hodnocení a nutričních hodnot.
+    \item Aplikace umožňuje kombinovat libovolné množství vyhledávácích filtrů.
+    \item Aplikace podporuje zadávání vlastních i předdefinovaných ingrediencí prostřednictvím našeptávače.
+    \item Aplikace podporuje fasetové vyhledávání, tedy u nabízených možností zobrazuje počet receptů, které se po zvolení daného filtru zobrazí.
+    \item Aplikace poskytuje možnost smazání všech vyhledávacích filtrů jedním kliknutím, ale také mazání po jednom filtru.
+    \item Aplikace zobrazuje uživateli všechny nalezené výsledky bez omezení na maximální počet výsledků.
+    \item Aplikace při otevření vyhledávací obrazovky bez zadaných filtrů zobrazuje všechny recepty, které má v databázi.
+    \item Aplikace umožňuje zobrazení detailu receptu rozkliknutím nalezeného výsledku.
+    \item Aplikace zobrazuje pouze recepty s titulní fotografií.
+    \item Aplikace na vyhledávací stránce pro každý nalezený recept zobrazuje jeho název, popis, obrázek, čas přípravy, hodnocení a počet recenzí.
+    \item Aplikace nabízí náhledy všech ingrediencí u vyhledaných receptů a zvýrazňuje aktuálně vyhledávané ingredience.
+    \item Aplikace umožňuje listování nalezenými výsledky prostřednictvím systému stránkování, nikoli nekonečným posouváním stránky.
+    \item Aplikace plně podporuje navigaci v rámci historie prohlížeče včetně přidávání a odebírání filtrů a listováním více stranami výsledků.
+    \item Aplikace na detailní stránce každého receptu zobrazuje název, hodnocení, počet recenzí, popis, čas přípravy, fotografii, ingredience, postup přípravy a nutriční hodnoty.
+    \item Aplikace zvýrazňuje ingredience na detailní stránce receptu, ke kterým má dodatečné informace.
+    \item Aplikace přesměrovává na obrazovku s detailem ingredience po kliknutí na zvýrazněnou ingredienci.
+    \item Aplikace zobrazuje na detailní stránce ingredience následující informace nebo jejich podmnožinu: název, popis, obrázek, nutriční hodnoty, náhrady, kategorie a níže recepty obsahující tuto ingredienci, které lze otevřít stejně jako z vyhledávací obrazovky.
+    \item Aplikace má nezávisle na otevřené stránce viditelný ovládací panel s možností navigace na vyhledávací obrazovku.
+
+\end{enumerate}
+
+\subsubsection{Externí systém}
+
+\begin{enumerate}
+    \item Aplikace poskytuje REST API endpointy pro získání dat k receptům a ingrediencím.
+    \item Aplikace vkládá JSON-LD reprezentaci dat do hlaviček dokumentů s recepty a ingrediencemi.
+    \item Aplikace podporuje navigaci a vyhledávání receptů přes url adresy s query parametry.
+\end{enumerate}
+
+\subsection{Nefunkční požadavky}
+
 \section{Dostupné datové sady}
 
-V této sekci je vyhrazen prostor pro analýzu různých veřejně dostupných datasetů z domény receptů. Nejedná se ani zdaleka o kompletní výčet, měly by ale být představeny nejznámější alternativy, které by mohly být vybrány jako podklad pro obsah aplikaci. 
+V této sekci je vyhrazen prostor pro analýzu různých veřejně dostupných datasetů z domény receptů. Nejedná se ani zdaleka o kompletní výčet, měly by ale být představeny nejznámější alternativy, které by mohly být vybrány jako podklad pro obsah aplikace. 
 
 \subsection{Recipe1M+}
 
@@ -30,9 +70,9 @@ Tento problém je poměrně snadno řešitelný díky struktuře stránky Food.c
 
 \subsection{FoodKG}
 
-Přímo v oblasti znalostních grafů figuruje projekt \emph{FoodKG}, který je postaven nad sadou receptů z již zmíněného datasetu Recipe1M+. Recepty doplňuje o podrobnější data k ingrediencím ze stránky The Cook's Thesaurus a definuje vlastní ontologii. Model ontologie je navržen pro zodpovídání dotazů na recepty dle ingrediencí s přihlédnutím k individuálním potřebám uživatele, jako jsou alergie a intolerance na různé složky potravin.
+Přímo v~oblasti znalostních grafů figuruje projekt \emph{FoodKG}, který je postaven nad sadou receptů z~již zmíněného datasetu Recipe1M+. Recepty doplňuje o~podrobnější data k~ingrediencím ze stránky The~Cook's~Thesaurus a~definuje vlastní ontologii. Model ontologie je navržen pro zodpovídání dotazů na recepty dle ingrediencí s~přihlédnutím k~individuálním potřebám uživatele, jako jsou alergie a~intolerance na určité složky potravin.
 
-Vývojáři projektu zpřístupňují skripty k extrakci dat z encyklopedie The Cook's Thesaurus a k vytvoření znalostního grafu. Neposkytují ale žádné nové recepty nad rámec datové sady Recipe1M+, naší horní hranicí by tedy bylo $50\,000$ receptů s nutričními hodnotami. Ontologie publikovaná na webových stránkách projektu obsahuje $75$ entit ingrediencí, které kromě obecného popisu poskytují informace o glykemickém indexu, obsahu lepku a možných náhradách dané ingredience. Výhodou je připravený RDF formát, nad kterým se lze snadno dotazovat pomocí jazyka SPARQL. Autoři Chen a kol. uvádějí ukázky dotazů, vyberme například dotaz vracející recepty, které obsahují banán a zároveň neobsahují vlašské ořechy \emph{FoodKG}:
+Vývojáři projektu FoodKG zpřístupňují skripty k~extrakci dat z~encyklopedie The~Cook's~Thesaurus a~k~vytvoření znalostního grafu. Neposkytují ale žádné nové recepty nad rámec datové sady Recipe1M+, naší horní hranicí by tedy bylo $50\,000$ receptů s~nutričními hodnotami (viz sekce \emph{Recipe1M+}). Ontologie publikovaná na webových stránkách projektu obsahuje $75$ entit ingrediencí, které kromě obecného popisu poskytují informace o~glykemickém indexu, obsahu lepku a~možných náhradách dané ingredience. Výhodou je připravený RDF formát, nad kterým se lze snadno dotazovat pomocí jazyka SPARQL. Autoři Chen~a~kol. uvádějí ukázky dotazů, vyberme například dotaz vracející recepty, které obsahují banán a~zároveň neobsahují vlašské ořechy \citep{food-kg}:
 
 \begin{code}
 @PREFIX food: <http://purl.org/heals/food/>
@@ -49,7 +89,15 @@ WHERE {
 
 \subsection{Generování vlastního datasetu}
 
-Pokud bychom se nespokojili s žádnou z dostupných datových sad, případně potřebovali data rozšířit a posbírat je přímo ze zdroje, využijeme metodu zvanou \emph{web scraping}. V rámci tohoto procesu musíme analyzovat cílovou stránku z pohledu získávání a prezentace dat. S využitím vývojářským nástrojů ve webovém prohlížeči můžeme přes panel \texttt{Network} sledovat požadavky, které aplikace odesílá na svůj server a v mnoha případech se na toto interní API dokážeme napojit a získat data ve strukturované podobě. Aplikace typicky pracují s REST API nebo GraphQL API a standardně data poskytují ve formátu JSON. Pokud žádný fetch request pro získávání potřebných dat neobjevíme, musíme informace extrahovat přímo z HTML dokumentu prostřednictvím CSS selektorů. V obou případech budeme aplikaci posílat GET requesty, ať už na její backend pro strukturovaná data nebo na frontend pro HTML dokumenty k následnému parsování.
+Pokud se nespokojíme s~žádnou z~dostupných datových sad, případně potřebujeme data rozšířit a~posbírat je přímo ze zdroje, využijeme metodu zvanou \emph{web scraping}. V~rámci tohoto procesu musíme analyzovat cílovou stránku z~pohledu získávání a~prezentace dat. S~využitím vývojářským nástrojů ve webovém prohlížeči můžeme přes panel \texttt{Network} sledovat požadavky, které aplikace odesílá na svůj server a~v~mnoha případech se na toto interní API dokážeme napojit a~získat data ve strukturované podobě. Aplikace typicky pracují s~REST~API, GraphQL API nebo jejich kombinací a~standardně data poskytují ve formátu JSON. Pokud žádný fetch request pro získávání potřebných dat neobjevíme, musíme informace extrahovat přímo z~HTML dokumentu prostřednictvím CSS selektorů. V~obou případech budeme aplikaci posílat GET requesty, ať už na její backend pro strukturovaná data nebo na frontend pro HTML dokumenty k následnému parsování.
 
-Problematická je kategorie single-page aplikací, které data nezískávají s využitím transparentních fetch requestů a zároveň potřebují JavaScript pro vygenerování obsahu. Zde nestačí pouhé poslání GET requestu přes HTTP, neboť odpověď neobsahuje žádná relevantní data uvnitř HTML. Pro zvládnutí takovýchto stránek potřebujeme zapojit automatizaci webového prohlížeče. Nejznámější projekty, které se této automatizaci věnují, jsou Selenium, Puppeteer, Playwright a Cypress \citep{selenium-ecosystem}. Navíc můžeme během posílání requestů narazit na různé formy blokování, od limitu maximálního počtu requestů z jedné IP adresy přes povinné autorizační tokeny až po captcha testy řešitelné pouze s využitím umělé inteligence. Taky se při neopatrnosti může stát, že server aplikace zahltíme příliš velkým množstvím paralelních requestů, čímž prodloužíme dobu odezvy nebo zpracování dalších requestů dočasně zcela znemožníme. Stejně jako v jiných oblastech se hodí využít nástroj, který co nejvíce běžných problémů vyřeší za nás. Pro potřeby této práce by vzhledem k rozsáhlejší osobní zkušenosti byla vhodná open source knihovna Apify, která má v arzenálu zpracování HTTP requestů s následným parsováním HTML pomocí knihovny Cheerio, ale také automatizaci webového prohlížeče s využitím knihoven Puppeteer nebo Playwright. Navíc nabízí správu rotace IP adres, čímž snižuje množství zablokovaných requestů. IP adresy lze v placeném plánu získat přímo od firmy Apify, nebo na vstupu poskytnout seznam vlastních. Obecně nechceme program spouštět z vlastní IP adresy, neboť riskujeme, že nás stránka někdy i natrvalo zablokuje.
-  
+Problematická je kategorie aplikací, které data nezískávají s~využitím transparentních fetch requestů a~zároveň potřebují spouštět JavaScript kód pro vygenerování obsahu. Zde nestačí pouhé poslání GET requestu přes HTTP, neboť odpověď neobsahuje žádná relevantní data uvnitř HTML. Pro zvládnutí tohoto typu stránek potřebujeme zapojit automatizaci webového prohlížeče. Nejznámějšími projekty, které se této automatizaci věnují, jsou Selenium\footnote{https://github.com/SeleniumHQ/selenium}, Puppeteer\footnote{https://github.com/puppeteer/puppeteer}, Playwright\footnote{https://github.com/microsoft/playwright} a~Cypress\footnote{https://github.com/cypress-io/cypress} pro automatizaci testování \citep{selenium-ecosystem}. Všechny ze zmíněných projektů jsou open-source.
+
+Během posílání requestů můžeme rovněž narazit na různé formy blokování, od limitu maximálního počtu requestů z~jedné IP adresy přes povinné autorizační tokeny až po captcha testy řešitelné pouze s~využitím umělé inteligence. Některé aplikace navíc kontrolují tzv. otisk webového prohlížeče. Jedná se o~sadu informací k~zařízení uživatele, jmenovitě data o~konkrétním hardwaru, operačním systému a~webovém prohlížeči včetně konfigurace \citep{browser-fingerprints}. Také se při neopatrnosti může stát, že server aplikace zahltíme příliš velkým množstvím paralelních requestů, čímž prodloužíme dobu odezvy nebo zpracování dalších requestů dočasně zcela znemožníme.
+
+Stejně jako v~jiných oblastech se hodí využít nástroj, který co nejvíce běžných problémů vyřeší za nás. Na poli open-source nástrojů pro extrakci dat si vedoucí pozici drží knihovna Scrapy\footnote{https://github.com/scrapy/scrapy} psaná v~jazyce Python, která nabízí celou řadu pokročilých funkcí proti blokování requestů. Pro potřeby této práce by ale vzhledem k~rozsáhlejší osobní zkušenosti byla vhodnou volbou knihovna Apify\footnote{https://github.com/apify/apify-js} pro Node.js. V arzenálu má zpracování HTTP requestů s~následným parsováním HTML pomocí knihovny Cheerio\footnote{https://github.com/cheeriojs/cheerio}, ale také automatizaci webového prohlížeče s~využitím knihoven Puppeteer nebo Playwright, včetně generování otisků webového prohlížeče. Navíc zajišťuje rotaci IP adres, čímž snižuje množství zablokovaných requestů. IP adresy lze v rámci placeného účtu získat přímo od firmy Apify, nebo na vstupu poskytnout seznam vlastních. Obecně preferujeme program nespouštět z~osobní IP adresy, neboť riskujeme, že nás stránka někdy i~natrvalo zablokuje, případně se naše IP adresa dostane na veřejný seznam adres doporučených k~blokování.
+
+S~dostatkem času, výpočetních prostředků, IP adres pro rotování a~s~velikou kapacitou úložiště bychom byli schopni zpracovat většinu vybraných aplikací s recepty. Pro každou stránku bychom napsali dedikovaný program a postupně extrahovali data z~celé stránky. Recepty z~různých aplikací bychom uložili ve sjednoceném formátu a~výsledkem by byl kvalitní dataset s~maximálním množstvím dat, které lze od zdrojových stránek získat. Práce ovšem necílí na datovou sadu takovéto velikosti. Místo toho se zaměřuje na vytvoření infrastruktury nad podmnožinou receptů, kterou bude možné libovolně škálovat dle možností dalšího vývoje. V~případě vlastní extrakce dat bychom si tedy vybrali dva až tři zástupce aplikací, navrhli pro ně jednoduché řešení extrakce dat a~omezili počet sesbíraných výsledků na rozumnou hodnotu. Vhodným kandidátem by jednoznačně byla zmíněná stránka Food.com, která obsahuje přes $500\,000$ receptů a~pro cca $200\,000$ z nich máme k dispozici unikátní identifikátory skrze dataset z~platformy Kaggle. Navíc dokumenty s~recepty obsahují JSON-LD reprezentaci v hlavičce HTML. Pro každý recept se známým id by tedy stačilo vytvořit url, poslat na něj GET request a~z~HTML odpovědi extrahovat JSON-LD data. Podobně bychom mohli zpracovat recepty ze stránky Allrecipes, kde jsou v~detailech receptů rovněž publikována JSON-LD data. Url receptů by mohl objevit přímo náš program během procházení stránky nebo bychom mohli využít url adresy z datasetu Recipe1M+.
+
+\subsection{Znalostní grafy}
+
