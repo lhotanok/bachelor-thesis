@@ -1,7 +1,7 @@
 % Metadata k uložení do PDF, podrobnější popis viz dokumentace balíčku pdfx.
 
-\Author{Jméno Příjmení}
-\Title{Název práce}
-\Keywords{klíčová slova\sep další taková\sep ještě jiná}
-\Subject{Abstrakt práce}
+\Author{Kristýna Lhoťanová}
+\Title{Webová aplikace pro vyhledávání receptů}
+\Keywords{webová aplikace\sep recept\sep znalostní graf\sep propojená data}
+\Subject{Cílem této práce je vyvinout webovou aplikaci pro vyhledávání receptů založenou na agregaci datových sad z existujících webových stránek s recepty a jejich obohacení o data ze znalostních grafů. Znalostní grafy byly zastoupeny projekty DBpedia a Wikidata, z nichž byla získána data o ingrediencích a kategoriích jednotlivých receptů. Data byla extrahována s pomocí knihovny Apify a v dokumentovém modelu uložena do databázového systému Apache CouchDB. Aplikace uživateli poskytuje různé možnosti filtrování výsledků včetně fasetového vyhledávání, k čemuž využívá platformu Apache Solr. Zaměřuje se zejména na vyhledávání dle ingrediencí. Jedná se o tzv. single-page aplikaci implementovanou pomocí JavaScriptové knihovny React pro uživatelské rozhraní a frameworku Express.js na straně serveru. Obě části aplikace jsou psány staticky typovaným jazykem TypeScript a komunikují spolu prostřednictvím REST API.}
 \Publisher{Univerzita Karlova}
