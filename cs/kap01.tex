@@ -72,6 +72,29 @@ Požadavky z~této kategorie lze dále dělit podle jejich zaměření. Někter�
     \item Aplikace je kompatibilní s~webovými prohlížeči Google Chrome, Mozilla Firefox a~Microsoft Edge.
 \end{enumerate}
 
+\subsection{Uživatelské příběhy}
+
+Požadavky aplikace lze méně formálním způsobem popsat pomocí tzv. uživatelských příběhů, které vyjadřují přání a očekávání uživatele vůči aplikaci. Uživatel vyžaduje konkrétní funkcionalitu pro dosažení vybraného cíle. Uživatelské příběhy jsou důležitou součástí agilního vývoje, neboť kladou důraz na potřeby uživatele, které se v průběhu vývoje mohou vyvíjet a měnit. Obvykle příběhy zapisujeme v jednoduchém formátu: \uv{Jako (role) chci (funkce)[, abych (cíl)]} \citep{user-stories}. Následují příklady uživatelských příběhů v kontextu naší aplikace:
+
+\begin{enumerate}
+    \item Jako kuchař, který má vybraných několik hlavních ingrediencí, chci najít všechny recepty obsahující tyto suroviny.
+    \item Jako milovník řecké a~italské kuchyně chci použít filtrování receptů z~těchto oblastí, abych nemusel procházet detaily receptů a~hledat jejich původ v~popisu.
+    \item Jako uživatel, který rád šetří čas, chci znát všechny ingredience daného receptu ještě před otevřením jeho detailu, abych se vyhnul čtení receptů s~příliš mnoha dodatečnými ingrediencemi.
+    \item Jako zaneprázdněný student chci snadno najít recepty, které lze připravit za méně než $30$ minut.
+    \item Jako celiak chci hledat pouze recepty bez obsahu lepku, abych nemusel procházet spousty receptů, které si nemohu připravit.
+    \item Jako vrcholový sportovec chci snadno najít recepty s~vysokým obsahem bílkovin.
+    \item Jako nutriční poradce chci u~receptů vidět podrobný rozpis nutričních hodnot, abych daný recept mohl doporučit svým klientům dle jejich stravovacích potřeb.
+    \item Jako hostitel očekávající návštěvu potřebuji znát počet porcí, které se základním množstvím surovin připravím, abych toto množství mohl přizpůsobit počtu hostů.
+    \item Jako zvídavý uživatel se chci při čtení receptu dozvědět zajímavosti o~jeho ingrediencích.
+    \item Jako uživatel s~vytříbeným vkusem chci hledat pouze recepty s~maximálním hodnocením a~s~co největším počtem kladných recenzí.
+    \item Jako nerozhodný uživatel chci mít možnost rychlé změny vyhledávacích filtrů.
+    \item Jako uživatel, který našel zajímavý recept před několika dny, chci využít historii prohlížeče a~najít recept dle názvu, abych nemusel vzpomínat na vyhledávací filtry, pomocí nichž jsem recept původně objevil.
+    \item Jako kuchař spokojený s~připraveným pokrmem chci najít autora receptu a~vyhledat jeho další recepty.
+    \item Jako uživatel s~preferencí vzhledu Material Design bych rád pracoval s~aplikací, která je na tomto stylu založená.
+    \item Jako vývojář externí aplikace s~recepty bych rád jednoduše získal strukturovaná data receptů, abych každou informaci nemusel extrahovat přes jednotlivé CSS selektory.
+    \item Jako webový vyhledávač potřebuji informace k receptům ve strukturovaném formátu pro Linked Data, ideálně popsané dle entity \texttt{Recipe} z ontologie Schema.org.
+\end{enumerate}
+
 \subsection{Obrazovky uživatelského rozhraní}
 
 Přestože vyvíjíme single-page aplikaci, počítáme s~více obrazovkami pro pohodlnější navigaci. S~využitím knihovny React Router dokážeme simulovat existenci libovolného množství obrazovek a~zároveň zůstat na jedné stránce bez potřeby opětovného načítání. Tím se odlišíme od tradičních statických aplikací, kterým při každé změně url včetně query parametrů musí server v~odpovědi poslat odpovídající HTML obsah. Náš přístup má ovšem nevýhodu z~pohledu strojového zpracování, neboť pro vygenerování obsahu stránky potřebujeme v~prohlížeči spustit JavaScript kód. Tím znemožníme zpracování naší aplikace prostřednictvím pouhých HTTP requestů, což je podstatně jednodušší a~ekonomičtější varianta ve srovnání s~automatizací celého webového prohlížeče. Tento nedostatek ale kompenzujeme transparentním REST API, přes které si lze vyžádat strukturovaná data přímo přes HTTP requesty. Zároveň usnadníme automatické zpracování vyhledávačům, které automatizaci prohlížeče využívají, neboť v~detailech receptů a~ingrediencí zahrneme jejich JSON-LD reprezentaci.
