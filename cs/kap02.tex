@@ -80,15 +80,58 @@ S~CouchDB můžeme komunikovat přes webové rozhraní skrze aplikaci Fauxton, p
 
 \section{Indexy}
 
-Pro uložení dokumentů do databáze CouchDB není potřeba specifikovat žádné schéma. Během konfigurace platformy Apache Solr pro vyhledávání se ovšem bez striktně definovaného schématu neobejdeme. Respektive abychom byli přesní, Solr dokáže na základě vložených dat odvodit schéma dynamicky, často ale nezvolí datový typ správně a~navíc je při výběru zbytečně generický. Představme si libovolný řetězec z~dokumentu receptu, například text jedné ingredience. Pokud Solr nenajde ve schématu žádnou definici typu u~vlastnosti ingredience, vytvoří pro ni dynamický index typu \texttt{string}. Na první pohled se zdá být vše v~pořádku, když si ale projdeme dostupné typy, najdeme mezi nimi i~podstatně specifičtější variantu \texttt{text\_en}. Typ anglického textu je pro naši aktuální lokalizaci ideální, neboť nabízí vestavěnou podporu skloňování a~časování anglických slov. V~praxi nám pomůže najít více relevantních výsledků. Uživatel může zadat např. ingredienci \texttt{tomatoes}, Solr provede normalizaci vyhledávaného termínu a~vrátí recepty obsahující mezi surovinami nejen slova \texttt{tomatoes}, ale také \texttt{tomato}.
+Pro uložení dokumentů do databáze CouchDB není potřeba specifikovat žádné schéma. Během konfigurace platformy Apache Solr pro vyhledávání se ovšem bez striktně definovaného schématu neobejdeme. Respektive abychom byli přesní, Solr dokáže na základě vložených dat odvodit schéma dynamicky, často ale nezvolí datový typ správně a~navíc je při výběru zbytečně generický. Představme si libovolný řetězec z~dokumentu receptu, například text jedné ingredience. Pokud Solr nenajde ve schématu žádnou definici typu u~vlastnosti ingredience, vytvoří pro ni dynamický index typu \texttt{string}. Na první pohled se zdá být vše v~pořádku, když si ale projdeme dostupné typy, najdeme mezi nimi i~podstatně specifičtější variantu \texttt{text\_en}. Typ anglického textu je pro naši aktuální lokalizaci ideální, neboť nabízí vestavěnou podporu skloňování a~časování anglických slov. V~praxi nám pomůže najít více relevantních výsledků. Uživatel může zadat například ingredienci \texttt{tomatoes}, Solr provede normalizaci vyhledávaného termínu a~vrátí recepty obsahující mezi surovinami nejen slova \texttt{tomatoes}, ale také \texttt{tomato}.
 
-Prvním krokem pro práci s~platformou Solr je tedy kompletní návrh schémat pro dokumenty receptů a~ingrediencí. Solr umožňuje data rozdělit do tzv. jader, vytvoříme tedy $2$ jádra, každé s~vlastním schématem indexů. Pro vytvoření schématu využijeme skript operující nad REST API poskytovaným systémem Solr, čímž proces automatizujeme a~usnadníme případnou migraci na jiné zařízení.
+Prvním krokem pro práci s~platformou Solr je tedy kompletní návrh schématu pro dokumenty receptů. Pro vytvoření schématu využijeme skript operující nad REST~API poskytovaným systémem Solr, čímž proces automatizujeme a~usnadníme případnou migraci na jiné zařízení. Solr umožňuje data rozdělit do tzv. jader, založíme tedy samostatné jádro pro dokumenty s~recepty a~vytvoříme infrastrukturu, která umožní snadné přidání nového jádra, pokud by v~budoucnu bylo potřebné. V~rámci současných požadavků aplikace by se mohlo zdát, že budeme vyhledávací schopnosti platformy Solr potřebovat i~pro dokumenty ingrediencí, konkrétně pro řešení našeptávače surovin. Seznam doporučených přísad by se totiž měl aktualizovat na základě vstupu uživatele. Po napsání každého nového znaku se musí zobrazit pouze ingredience, které odpovídají vyhledávanému výrazu. Přirozeně nebereme v~potaz velikost písmen a~vzhledem k~výhradně anglické lokalizaci se v~současnosti nezabýváme ani diakritikou. Využití systému Solr by nám pomohlo nabídnout více relevantních ingrediencí, neboť bychom vyhledávaný výraz mohli interpretovat jako anglický text a~poradit si tak s~jeho formátem v~různých tvarech a časech. Kvůli každému napsanému znaku bychom ale museli odeslat dotaz serveru hostícímu instanci Solr, což by generovalo poměrně významné zpoždění vlivem komunikace po síti. Spokojíme se tedy s~jednodušší architekturou našeptávače --- vyžádáme si všechny ingredience najednou a~zobrazení relevantních návrhů během psaní vyřešíme na straně klienta. Jak lze ale získat seznam všech unikátních ingrediencí, pokud máme v~Solr uloženy pouze dokumenty receptů? Odpovědí je fasetové vyhledávání.
+
+\subsection{Fasetové vyhledávání}
+
+Fasetové vyhledávání, označované také jako fasetová navigace, je způsob interakce, během které uživatel filtruje výsledky výběrem validních hodnot fasetového klasifikačního systému. Tento styl vyhledávání nevyžaduje hierarchické uspořádání nabízených možností, díky čemuž lze filtry přidávat i~odebírat v~libovolném pořadí. Navíc uživatel často předem zná počet výsledků, které se po aplikování daného filtru zobrazí \citep{faceted-search}. V~kontextu naší aplikace se fasetová navigace hodí pro jednotlivé vlastnosti vyhledávání, jakými jsou nejen ingredience, ale také klíčová slova, kategorie, typ kuchyně, čas přípravy či hodnocení. Každý z~těchto filtrů je zcela nezávislý, není tedy žádoucí vytvářet kolem nich hierarchii. Nedávalo by smysl zpřístupnit například vyhledávání dle ingrediencí až po výběru kategorie receptu. Na druhou stranu, výběr kategorií může ovlivnit (respektive omezit) nabídku ingrediencí ve fasetové navigaci a~stejně tak volba určitých ingrediencí může vyřadit některé kategorie receptů.
+
+Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace. Zároveň nastavíme ve schématu tzv. \emph{copy field} z~položky zdrojových ingrediencí do položky fasetových ingrediencí. Díky tomu bude stačit během přidávání dokumentů vložit ingredience pouze do jedné položky objektu, přičemž do položky pro fasetové vyhledávání se zkopírují automaticky dle schématu.
+
+\subsection{Zvýraznění nalezených výrazů}
+
+Dalším konceptem, se kterým se během vyhledávání pomocí Solr setkáme, bude tzv. \emph{highlighting} neboli zvýraznění vyhledaných výrazů. Využijeme jej při prezentaci surovin jakožto primárního filtru. U~libovolného receptu na vyhledávací obrazovce lze zobrazit kompletní seznam ingrediencí. Pro lepší přehlednost zvýrazníme aktuálně vyhledávané ingredience tučným písmem a~pro přesnou identifikaci těchto pojmů využijeme vestavěnou funkci od platformy Solr. Informace o~zvýrazněných ingrediencích doručíme na frontend aplikace spolu s dokumenty receptů.
 
 \subsection{Model receptu}
 
-Schéma receptu navrhneme dle požadavků na vlastnosti, podle kterých potřebujeme recepty vyhledávat. Zároveň zde ale patří definice všech položek, které budeme na vyhledávací stránce zobrazovat. Teoreticky bychom mohli platformu Solr využít pouze na vyhledání identifikátorů receptů na základě zadaných indexů a~ostatní informace získat z~databáze CouchDB. Tento přístup by optimalizoval množství paměti využívané systémem Solr a~odstranil poměrně výraznou duplicitu dat. Na druhou stranu by do zpracování vyhledávacích dotazů za běhu aplikace zanesl větší komplexitu a~časovou prodlevu, která by vznikla nadbytečnou komunikací s~CouchDB. Pokud si budeme všechny potřebné informace pro vyhledávací stránku držet v~systému Solr, bude nám stačit zpracovat pouze jeden vyhledávací dotaz pro zobrazení jedné stránky receptů. Rychlé vyhledávání je klíčovou funkcionalitou naší aplikace, proto zde upřednostníme optimalizaci časové složitosti namísto paměťové. 
+Schéma receptu navrhneme dle požadavků na vlastnosti, podle kterých potřebujeme recepty vyhledávat. Zároveň zde ale patří definice všech položek, které budeme na vyhledávací stránce zobrazovat. Teoreticky bychom mohli platformu Solr využít pouze na vyhledání identifikátorů receptů na základě zadaných indexů a~ostatní informace získat z~databáze CouchDB. Tento přístup by optimalizoval množství paměti využívané systémem Solr a~odstranil poměrně výraznou duplicitu dat. Na druhou stranu by do zpracování vyhledávacích dotazů za běhu aplikace zanesl větší komplexitu a~časovou prodlevu, která by vznikla nadbytečnou komunikací s~CouchDB. Pokud si budeme všechny potřebné informace pro vyhledávací stránku držet v~systému Solr, bude nám stačit zpracovat pouze jeden vyhledávací dotaz pro zobrazení jedné stránky receptů. Rychlé vyhledávání je klíčovou funkcionalitou naší aplikace, proto zde upřednostníme optimalizaci časové složitosti namísto paměťové.
+
+Schéma dokumentu receptu uloženého v~Solr bude následující (jedná se pouze o~ilustrační schéma, kde typy odpovídají standardním typům dle specifikace Solr, nikoli běžně dostupným typům formátu JSON):
+
+\begin{code}
+{
+    name: text_en,
+    description: text_en,
+    recipeCategory: text_en,
+    ingredients: text_en,
+    tags: text_en,
+    rating: pfloat,
+    reviewsCount: pint,
+    stepsCount: pint,
+    cookMinutes: pint,
+    prepMinutes: pint,
+    totalMinutes: pint,
+    image: string,
+    date: string,
+    calories: pint,
+    fat: pfloat,
+    saturatedFat: pfloat,
+    cholesterol: pfloat,
+    sodium: pfloat,
+    carbohydrate: pfloat,
+    fiber: pfloat,
+    sugar: pfloat,
+    protein: pfloat,
+}
+\end{code}
+%$
+
+Ne všechny obsažené položky nutně využijeme v první verzi naší prezentační vrstvy (například datum nebo počet minut samotné přípravy či vaření pokrmu). Usnadníme ale přidávání nových funkcí typu třídění výsledků na základě data publikace nebo vyřazení receptů, kde nestačí pouhá příprava ze syrových ingrediencí a je potřeba počítat s vařením.
 
 \section{Backend}
+
 
 
 \section{Frontend}
