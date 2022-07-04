@@ -128,11 +128,39 @@ Schéma dokumentu receptu uloženého v~Solr bude následující (jedná se pouz
 \end{code}
 %$
 
-Ne všechny obsažené položky nutně využijeme v první verzi naší prezentační vrstvy (například datum nebo počet minut samotné přípravy či vaření pokrmu). Usnadníme ale přidávání nových funkcí typu třídění výsledků na základě data publikace nebo vyřazení receptů, kde nestačí pouhá příprava ze syrových ingrediencí a je potřeba počítat s vařením.
+Ne všechny obsažené položky nutně využijeme v~první verzi naší prezentační vrstvy (například datum nebo počet minut samotné přípravy či vaření pokrmu). Usnadníme ale přidávání nových funkcí typu třídění výsledků na základě data publikace nebo vyřazení receptů, kde nestačí pouhá příprava ze syrových ingrediencí a~je potřeba počítat s~vařením.
 
 \section{Backend}
 
+Jak bylo zmíněno v~úvodní části této kapitoly, serverová část aplikace bude sloužit jako poměrně jednoduchá mezivrstva pro zprostředkování komunikace mezi klientem, platformou Solr a~databází CouchDB. Základy architektury položíme na zvoleném frameworku Express.js pro Node.js, který umožňuje snadnou definici REST API a~delegování přijímaných požadavků na vlastní komponenty. Budeme podporovat $4$~endpointy pro HTTP GET requesty, jmenovitě získání všech receptů nebo ingrediencí a~vyžádání $1$~receptu či ingredience dle jejich unikátního id. V těle odpovědi na libovolný dotaz budou figurovat data v~JSON formátu, naše rozhraní tedy můžeme označit jako JSON API. Zároveň budeme pracovat s~query parametry, prostřednictvím kterých předáme serveru informaci o~požadovaných filtrech, počtu výsledků na $1$~stránku a~offsetu pro zajištění funkcionality stránkování.
 
+V~závislosti na zvoleném endpointu se s~dotazem obrátíme na Solr nebo CouchDB. Pro oba systémy vytvoříme odpovídající modely spravovaných dokumentů. U~Solr nám bude stačit model pro recepty z~důvodů popsaných v~předchozí sekci. U~CouchDB pak definujeme modely pro recepty i~suroviny. Model bude mít za úkol vytvořit a~uchovat spojení s~úložištěm, přičemž vytvoření instance spojení zajistí příslušná komponenta factory s~využitím návrhového vzoru singleton. Díky němu se vyhneme opětovné inicializaci spojení. Dále model bude schopen vytvořit dotazy na základě informací z~query parametrů a~prostřednictvím navázaného spojení tyto dotazy vyhodnotit nad dokumenty v~Solr nebo CouchDB. Následně přijatá data převede do formátu očekávaného na frontendu aplikace (typicky zjednoduší výchozí schéma odpovědi a~relevantní data uloží s~menší mírou zanoření). Data budou poté ve formátu JSON a~s~příslušným stavovým kódem odeslána klientovi. 
+
+\subsection{JSON API}
+
+Zde soustředíme konkrétní podobu API pro získání JSON dokumentů s~recepty a~ingrediencemi. Prefixem potřebným pro složení kompletní url adresy je název domény, v~našem vývojovém prostředí \texttt{localhost:5000}.
+
+\subsubsection{Získání všech dokumentů}
+
+Dotaz na recepty využijeme v~kontextu vyhledávací obrazovky. Request obohatíme o~query parametry nesoucí informace o~požadovaných ingrediencích, klíčových slovech, kategoriích a~dalších filtrech. Za normálních okolností si vyžádáme pouze omezené množství výsledků odpovídající počtu receptů na $1$~stránce. Tím získáme odpověď v~podstatně kratším čase, což se projeví dřívějším zahájením renderování výsledků vyhledávání. Chceme uživateli API umožnit nastavení vlastního limitu počtu výsledků, neboť se limit může na frontendu měnit nezávisle na zbytku aplikace. Navíc tím také usnadníme práci vývojářům, kteří by potřebovali z~naší aplikace extrahovat strukturovaná data, neboť by jim stačil výrazně menší počet requestů. Nastavíme ovšem maximální limit na počet výsledků v~rámci $1$~requestu, abychom zamezili situacím, kdy se uživatel API pokusí najednou získat všechna data z~naší aplikace.
+
+Ingredience máme uloženy pouze v~databázi CouchDB, dotaz na endpoint ingrediencí tedy bude směřovat právě tam. S~aktuálními požadavky aplikace se bez tohoto endpointu obejdeme, je ale pravděpodobné, že budeme v blízké době implementovat encyklopedii všech ingrediencí po vzoru webové aplikace Food.com.
+
+\begin{code}
+/api/recipes
+/api/ingredients
+\end{code}
+%$
+
+\subsubsection{Získání dokumentu dle id}
+
+Requesty směrující na následují endpointy jsou vyřizovány nalezením detailu receptu nebo ingredience v~databázi CouchDB:
+
+\begin{code}
+/api/recipes/:recipeId
+/api/ingredients/:ingredientId
+\end{code}
+%$
 
 \section{Frontend}
 
