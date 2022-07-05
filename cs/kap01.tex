@@ -95,42 +95,6 @@ Požadavky aplikace lze méně formálním způsobem popsat pomocí tzv. uživat
     \item Jako webový vyhledávač potřebuji informace k receptům ve strukturovaném formátu pro Linked Data, ideálně popsané dle entity \texttt{Recipe} z ontologie Schema.org.
 \end{enumerate}
 
-\subsection{Obrazovky uživatelského rozhraní}
-
-Přestože vyvíjíme single-page aplikaci, počítáme s~více obrazovkami pro pohodlnější navigaci. S~využitím knihovny React Router dokážeme simulovat existenci libovolného množství obrazovek a~zároveň zůstat na jedné stránce bez potřeby opětovného načítání. Tím se odlišíme od tradičních statických aplikací, kterým při každé změně url včetně query parametrů musí server v~odpovědi poslat odpovídající HTML obsah. Náš přístup má ovšem nevýhodu z~pohledu strojového zpracování, neboť pro vygenerování obsahu stránky potřebujeme v~prohlížeči spustit JavaScript kód. Tím znemožníme zpracování naší aplikace prostřednictvím pouhých HTTP requestů, což je podstatně jednodušší a~ekonomičtější varianta ve srovnání s~automatizací celého webového prohlížeče. Tento nedostatek ale kompenzujeme transparentním REST API, přes které si lze vyžádat strukturovaná data přímo přes HTTP requesty. Zároveň usnadníme automatické zpracování vyhledávačům, které automatizaci prohlížeče využívají, neboť v~detailech receptů a~ingrediencí zahrneme jejich JSON-LD reprezentaci.
-
-Aplikaci složíme ze $3$ základních uživatelských obrazovek: vyhledávání receptů, detail receptu a detail ingredience. Všechny obrazovky musí být responzivní a poradit si s~proměnlivou velikostí obrazovky.
-
-\subsubsection{Vyhledávání receptů}
-
-Domovskou stránku bude tvořit vyhledávání receptů na základě různých kritérií. Primárně bude k~dispozici výběr požadovaných ingrediencí, sekundárně filtry klíčových slov, kategorií, času přípravy, hodnocení a~nutričních hodnot. Všechny filtry bude možné odstranit samostatně i~najednou pomocí společného tlačítka pro smazání. Pro získání přesnějších výsledků bude při vyplňování filtrů k~dispozici našeptávač, který zobrazí známé možnosti a~spolu s~nimi počty receptů, které jsou při výběru tohoto nastavení k~dispozici. Výsledky budou zobrazovány na stránkách s~$24$ nebo $30$ kartami receptů. Přepínání stránek bude umístěno standardně ve spodní části stránky a~zároveň bude aktuální stránka figurovat v~query parametrech pro přímočarou podporu navigace v~historii prohlížeče. Karta receptu bude obsahovat název, popis, obrázek, hodnocení, počet recenzí, čas přípravy a~počet instrukcí. Navíc bude možné rozbalit seznam ingrediencí, ve kterém budou zvýrazněny aktuálně vyhledávané ingredience. Uživatel bude přesměrován na obrazovku s~detailem receptu při stisknutí tlačítka \texttt{View} nebo při kliknutí na obrázek receptu. Konkrétní rozložení obrazovek viz obrázek \ref{obr01:desktop-search-view} pro desktopová zářízení a \ref{obr01:mobile-search-view} pro mobilní zařízení.
-
-\subsubsection{Detail receptu}
-
-Na obrazovce s konkrétním receptem bude obsažen název, popis, obrázek, autor, datum publikování, hodnocení s počtem recenzí, nutriční hodnoty a samozřejmě ingredience a postup přípravy. Rozložení pro větší obrazovky viz obrázek \ref{obr01:detail-view}, pro menší obrazovky se všechny karty zobrazí v 1 sloupci analogicky k rozložení \ref{obr01:mobile-search-view}. Jako budoucí rozšíření by bylo možné implementovat modul recenzí. V první fázi by recenze byly pouze extrahovány ze zdrojových datasetů, v další fázi by uživatelé mohli nové recenze přidávat prostřednictvím naší aplikace.
-
-\begin{figure}[p]\centering
-\includegraphics[width=140mm]{../img/desktop-search-view}
-\caption{Obrazovka vyhledávání receptů pro desktopová zařízení}
-\label{obr01:desktop-search-view}
-\end{figure}
-
-\begin{figure}[p]\centering
-\includegraphics[height=230mm]{../img/mobile-search-view}
-\caption{Obrazovka vyhledávání receptů pro mobilní zařízení}
-\label{obr01:mobile-search-view}
-\end{figure}
-
-\begin{figure}[p]\centering
-\includegraphics[width=140mm]{../img/detail-view}
-\caption{Obrazovka detailu receptu}
-\label{obr01:detail-view}
-\end{figure}
-
-\subsubsection{Detail ingredience}
-
-Na obrazovce detailu ingredience budou prezentována data z otevřených znalostních grafů. Zaměříme se primárně na jméno, popis a obrázek ingredience, které dle dostupných informací doplníme o nutriční hodnoty, kategorie, místo původu a další zajímavosti.
-
 \section{Dostupné datové sady}
 
 V~této sekci je vyhrazen prostor pro analýzu různých veřejně dostupných datasetů z~domény receptů. Nejedná se ani zdaleka o~kompletní výčet, měly by ale být představeny nejznámější alternativy, které by mohly být vybrány jako podklad pro obsah aplikace. 
