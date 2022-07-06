@@ -2,6 +2,23 @@
 
 \chapter{Implementace návrhu}
 
+Před zahájením vývoje aplikace je potřeba nainstalovat všechny potřebné nástroje a nakonfigurovat vývojové prostředí. Nejdůležitější nástroje, které vyžadují globální instalaci, jsou následující:
+
+\begin{itemize}
+    \item Node.js
+    \item Apache CouchDB
+    \item Apache Solr
+    \item Silk Workbench
+    \item Apify CLI
+\end{itemize}
+
+V řešení využijeme také řadu knihoven, které budeme instalovat pouze pro daný projekt pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže se nainstalují snadno prostřednictvím příkazu \texttt{npm install}.
+
+Co se týče výběru programovacích jazyků, přípravu dat vyřešíme pomocí vzájemně nezávislých skriptů psaných v jazyce JavaScript. Samotnou aplikaci včetně serverové a klientské vrstvy již napíšeme jazykem TypeScript, který je potřeba následně transpilovat do JavaScriptu. Tento dodatečný krok přidává komplexitu při spouštění kódu, proto jej vynecháme u jednoduchých skriptů připravujících dokumenty pro databázi a Solr. Zároveň ale přináší typovou kontrolu, kterou velmi oceníme v komplexnější aplikaci a to zejména při práci s externími knihovnami, jejichž rozhraní není vždy perfektně zdokumentováno.
+
+\section{Vývojové prostředí}
+
+Pro vývoj aplikace zvolíme editor Visual Studio Code s rozšířeními pro jazyky JavaScript a TypeScript. 
 
 \section{Zpracování vstupních dat}
 
@@ -10,9 +27,6 @@
 
 
 \section{Vyhledávání pomocí Apache Solr}
-
-
-\section{Rozhraní REST API}
 
 
 \section{Middleware}
