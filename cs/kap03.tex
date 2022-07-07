@@ -2,26 +2,91 @@
 
 \chapter{Implementace návrhu}
 
-Před zahájením vývoje aplikace je potřeba nainstalovat všechny potřebné nástroje a nakonfigurovat vývojové prostředí. Nejdůležitější nástroje, které vyžadují globální instalaci, jsou následující:
+Před zahájením vývoje aplikace je potřeba nainstalovat všechny potřebné nástroje a~nakonfigurovat vývojové prostředí. Nejdůležitější nástroje, které vyžadují globální instalaci, jsou následující:
 
 \begin{itemize}
     \item Node.js
+    \item Python
     \item Apache CouchDB
     \item Apache Solr
     \item Silk Workbench
     \item Apify CLI
 \end{itemize}
 
-V řešení využijeme také řadu knihoven, které budeme instalovat pouze pro daný projekt pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže se nainstalují snadno prostřednictvím příkazu \texttt{npm install}.
+V~řešení využijeme také řadu knihoven, které budeme instalovat pouze v~rámci projektu pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže je lze snadno nainstalovat prostřednictvím příkazu \texttt{npm install}.
 
-Co se týče výběru programovacích jazyků, přípravu dat vyřešíme pomocí vzájemně nezávislých skriptů psaných v jazyce JavaScript. Samotnou aplikaci včetně serverové a klientské vrstvy již napíšeme jazykem TypeScript, který je potřeba následně transpilovat do JavaScriptu. Tento dodatečný krok přidává komplexitu při spouštění kódu, proto jej vynecháme u jednoduchých skriptů připravujících dokumenty pro databázi a Solr. Zároveň ale přináší typovou kontrolu, kterou velmi oceníme v komplexnější aplikaci a to zejména při práci s externími knihovnami, jejichž rozhraní není vždy perfektně zdokumentováno.
+Co se týče výběru programovacích jazyků, přípravu dat vyřešíme pomocí vzájemně nezávislých skriptů psaných v~jazyce JavaScript. Samotnou aplikaci včetně serverové a~klientské vrstvy již napíšeme jazykem TypeScript, který je potřeba následně transpilovat do JavaScriptu. Tento dodatečný krok přidává komplexitu při spouštění kódu, proto jej vynecháme u~jednoduchých skriptů připravujících dokumenty pro databázi a~Solr. Zároveň ale přináší typovou kontrolu, kterou velmi oceníme v~komplexnější aplikaci a~to zejména při práci s~externími knihovnami, jejichž rozhraní není vždy perfektně zdokumentováno.
 
 \section{Vývojové prostředí}
 
-Pro vývoj aplikace zvolíme editor Visual Studio Code s rozšířeními pro jazyky JavaScript a TypeScript. 
+Aplikaci budeme vyvíjet v~editoru Visual Studio Code s~rozšířeními pro jazyky JavaScript a~TypeScript. Konzistentního formátování dosáhneme zapojením rozšíření Prettier, které má na starosti správné odsazení, maximální délku řádky a~další aspekty formátování.
 
 \section{Zpracování vstupních dat}
 
+Jak jsme již zmínili v~části o~architektuře aplikace, data k~receptům získáme primárně pomocí vlastní extrakce dat. Pro dataset z~webové aplikace Food.com využijeme i~statická data z~platformy Kaggle, kterými rozšíříme extrahované informace. Data k~ingrediencím ze znalostních grafů DBpedia a~Wikidata získáme rovněž automatizovaným postupem skrze zpracování HTTP požadavků.
+
+Jako zdroj receptů jsme si zvolili webové aplikace Food.com a~Allrecipes. Pro každou z nich vytvoříme dedikovaný extraktor s~využitím knihovny Apify. Struktura obou programů bude velmi podobná. Nejprve se podíváme na řešení pro aplikaci Food.com, u~které nás na rozdíl od stránky Allrecipes čeká dodatečná fáze sloučení informací ze statického datasetu.
+
+\subsection{Food.com}
+
+\subsubsection{Extrakce dat}
+
+Všechny skripty pro přípravu dat z~Food.com jsou soustředěny v~adresáři \texttt{data/resources/foodcom}. V~této sekci budeme při uvádění cesty pro zjednodušení předpokládat, že se nacházíme uvnitř \texttt{data/resources/foodcom}. Samotná extrakce dat je umístěna v podadresáři \texttt{food-com-scraper}, jehož struktura odpovídá standardnímu Apify actorovi, kterého jsme představili v~předchozí kapitole. Pro vytvoření této struktury lze využít příkaz \texttt{apify create}, který uživatele provede možnostmi různých šablon. My zvolíme šablonu pro tzv. \texttt{CheerioCrawler}, což je v~knihovně Apify řešení využívající pouze HTTP požadavky a~parsování HTML z~odpovědi. Pokud bychom potřebovali automatizaci webového prohlížeče, použili bychom šablonu \texttt{PuppeteerCrawler}, případně \texttt{PlaywrightCrawler}. Šablony jsou pojmenovány podle klíčových technologií, tedy knihovny Cheerio pro extrakci dat z~HTML a~knihoven Puppeteer či Playwright poskytujících rozhraní pro automatizaci prohlížeče.
+
+Pokud bychom adresář s~Apify actorem například naklonovali ze vzdáleného adresáře na platformě GitHub, stačilo by jej inicializovat příkazem \texttt{apify init}. Zároveň se jedná o~standardní Node.js projekt, pro instalaci potřebných knihoven tedy musíme spustit příkaz \texttt{npm install} nebo ekvivalentní \texttt{yarn install}. Po inicializaci se vytvoří důležitý adresář \texttt{apify\_storage} s~podadresáři \texttt{datasets} a~\texttt{key\_value\_stores}. Do adresáře \texttt{datasets} se typicky ukládají JSON soubory s~jednotlivými položkami datasetu, v~našem případě recepty. Na cloudové platformě Apify se pak tyto soubory sloučí do společného datasetu, který lze stáhnout v~řadě různých formátů, z~nichž nejčastěji využívané jsou formáty JSON a~CSV. Naše řešení bude ale určeno pouze pro lokální vývoj, pro zjednodušení tedy budeme výsledky ukládat přímo sloučené do adresáře \texttt{key\_value\_stores} pod klíčem \texttt{RECIPES}. Zároveň zde pod klíčem \texttt{INPUT} najdeme další důležitý soubor se vstupem pro actora. Ten bude obsahovat objekt s~jedinou položkou \texttt{startUrls} v~následujícím formátu:
+
+\begin{code}
+{
+  "startUrls": [
+    {
+      "url": "https://www.food.com/recipe/219662"
+    },
+    {
+      "url": "https://www.food.com/recipe/103336"
+    }
+  ]
+}
+\end{code}
+%$
+
+Vstup bude vygenerován a~uložen do \texttt{key\_value\_stores/INPUT.json} pomocí skriptu \texttt{recipe-urls-generator.js} z~adresáře \texttt{foodcom}, který URL adresy složí z~identifikátorů receptů. Před spuštěním tohoto skriptu je potřeba mít staženy soubory \texttt{recipes/RAW\_recipes.csv} a~\texttt{recipes/PP\_recipes.csv} z~datasetu Food.com Recipes and~Interactions\footnote{https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions} a~dokončen \texttt{recipes-preprocessing.js}. Přes proměnnou \texttt{RECIPES\_TO\_EXTRACT} uvnitř \texttt{constants.js} lze omezit počet receptů, které se mají extrahovat.
+
+Kód Apify actora je typicky soustředěn v~adresáři \texttt{src}. Klíčové jsou soubory \texttt{main.js} s~inicializací (v našem případě třídy \texttt{CheerioCrawler}) a~\texttt{routes.js} s~funkcemi pro zpracování různých typů obrazovek. Obvykle je potřeba definovat chování pro stránku typu \texttt{LIST}, ze které jsou získány odkazy na detaily nalezených výsledků, a~pro stránku \texttt{DETAIL}, kde jsou extrahována a~uložena data jednotlivých výsledků. Naše řešení pro aplikaci Food.com zpracovává pouze detaily receptů, které obdrží na vstupu. Stačí tedy implementovat funkci \texttt{handleDetail}, která pomocí CSS selektoru \texttt{script[type="application/ld+json"]} zacílí JSON-LD data z~hlavičky HTML dokumentu, vybranou část z~nich převede do strukturované podoby a~nově zkonstruovaný recept přidá do souboru \texttt{RECIPES.json}.
+
+Konstruktor třídy \texttt{CheerioCrawler} přijímá $1$ parametr s~možnostmi konfigurace. Prostřednictvím položky \texttt{proxyConfiguration} lze volitelně aktivovat rotování IP adres, které chrání naši vlastní IP adresu před dočasným či dokonce trvalým zablokováním a~zlepšuje poměr úspěšných požadavků. Vzhledem k~obecně nižší míře blokování ze strany aplikací s~recepty by využití proxy nemělo být nutné, je ale vhodné. Počet současně odesílaných požadavků omezíme na doporučenou hranici $50$ požadavků, abychom zamezili přetížení zpracovávané webové aplikace.
+
+\subsubsection{Sloučení dat}
+
+Propojení dat se statickým datasetem Food.com Recipes and~Interactions nám do projektu zanese poměrně velkou komplexitu ve srovnání s~pouhou extrakcí dat z~webové aplikace, kterou využijeme u~stránky Allrecipes. Pro zpracování dat z~aplikace Food.com nemůžeme využít stejný přístup jako s~Allrecipes, protože neposkytuje plně strukturované ingredience (odděluje pouze množství od ostatního textu). Výrazná výhoda zpracování dat z~Food.com je v~jejich kvantitě, která s~více než $500\,000$ recepty $10×$ převyšuje aplikaci Allrecipes a~tvoří polovinu obsahu největšího datasetu s~recepty Recipe1M+. Také poskytuje detailní informace přibližně k~$900$ ingrediencím na adrese \texttt{food.com/about}. Tyto data sice extrahovat nebudeme, počet ingrediencí s~detaily je pro nás ale užitečným vodítkem z~pohledu propojení s~otevřenými daty surovin.
+
+Dataset Food.com Recipes and~Interactions obsahuje kolem $8000$ unikátních ingrediencí extrahovaných a~normalizovaných přímo z~jednotlivých receptů. Tyto normalizované ingredience budou po čištění velmi dobrým podkladem pro fasetový našeptávač ingrediencí na vyhledávací stránce. Využijeme je pro vyhledávání receptů z~libovolných zdrojů. Bez nich bychom našeptávač ingrediencí museli vytvořit ze jmen surovin z~jiných stránek, například Allrecipes. Případně bychom mohli využít externí seznam ingrediencí, ať už z~aplikace Food.com nebo z~otevřených znalostních grafů. Počet navrhovaných přísad by ale byl výrazně menší.
+
+Nyní už se zaměříme na konkrétní zpracování datasetu Food.com Recipes and~Interactions. V~první fázi potřebujeme extrahovat ingredience, které jsou poskytnuty v~souboru \texttt{ingr\_map.pkl}. Pro zpracování formátu \emph{pkl} potřebujeme knihovnu pickle určenou k~serializaci a~de-serializaci objektů jazyka Python \citep{pickle}. Je tedy potřeba aktivovat prostředí pro vývoj v~jazyce Python s~nainstalovaným balíčkem pickle (typicky virtuální prostředí označované jako \emph{venv}). Soubor převedeme skriptem \texttt{pkl-ingredients-extractor.py} do formátu CSV, kde nalezneme informace v~následujícím formátu:
+
+\begin{code}
+raw_ingr,raw_words,processed,len_proc,replaced,count,id
+romaine lettuce leaf,3,romaine lettuce leaf,20,lettuce,4507,4308
+iceberg lettuce leaf,3,iceberg lettuce leaf,20,lettuce,4507,4308
+red romaine lettuce,3,red romaine lettuce,19,lettuce,4507,4308
+\end{code}
+%$
+
+Klíčové pro nás budou unikátní hodnoty ze sloupců \texttt{replaced} a~\texttt{id}, přičemž každá hodnota \texttt{replaced} má přiřazeno unikátní \texttt{id}. Jména surovin normalizujeme na přísady pro vyhledávání pomocí skriptu \texttt{ingredients-preprocessing.js}. Dále z~nich vytvoříme jednoduchý RDF dataset ve formátu Turtle prostřednictvím skriptu \texttt{rdf-data/rdf-ingredients-converter.js} a~tento dataset nahrajeme do aplikace Silk Workbench pro nalezení linků s~grafy DBpedia a~Wikidata.
+
+Normalizované názvy ingrediencí přidáme do receptů extrahovaných Apify actorem, což provedeme na základě informací ze souboru \texttt{RAW\_recipes.csv}, kde jsou propojeny recepty s~identifikátory ingrediencí. Stejným způsobem přidáme informace o~autorovi včetně jeho id. Tuto fázi má na starosti hlavní skript pro slučování dat, totiž \texttt{recipes-ingredients-merge-manager.js}.
+
+Poslední fáze patří skriptu \texttt{ingredients-postprocessing.js}, který v~adresáři \texttt{rdf-data} očekává soubor \texttt{dbpedia-ingredients.json} s~extrahovanými ingrediencemi z~grafu DBpedia a~soubor \texttt{wikidata-ingredients.json} s~přísadami z~Wikidata. Ty generuje skript \texttt{rdf-data/external-dataset-linker.js}, který potřebuje soubory ve formátu N-triples \texttt{rdf-data/food-dbpedia-same-ingr.nt} a~\texttt{rdf-data/food-wikidata-same-ingr.nt} vytvořené pomocí Silk Workbench. Konfigurace linkování extrahovaná z~grafického rozhraní Silk Workbench je uložena v XML souborech ve stejném adresáři.
+
+Výstupem našeho snažení jsou následující soubory:
+
+\begin{code}
+recipes/extended_recipes.json
+ingredients/extended_ingredients.json
+ingredients/search_ingredients.json
+\end{code}
+%$
+
+První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~poslední soubor najde uplatnění při tvorbě fasetových ingrediencí receptů uložených v~Solr.
 
 \section{Databáze Apache CouchDB}
 

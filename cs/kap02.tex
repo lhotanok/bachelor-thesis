@@ -1,10 +1,46 @@
 %%% Fiktivní kapitola s ukázkami citací
 
-\chapter{Architektura řešení}
+\chapter{Návrh}
 
-V~této kapitole se budeme věnovat návrhu architektury od extrakce a~uložení dat přes přípravu vyhledávacích indexů až po prezentaci těchto dat v~rámci funkční aplikace.
+V~této kapitole si představíme vzhled uživatelských obrazovek, ze kterého vyjdeme při tvorbě uživatelského rozhraní založeného na komponentách knihovny Material UI. Také se budeme věnovat návrhu architektury od extrakce a~uložení dat přes přípravu vyhledávacích indexů až po prezentaci těchto dat v~rámci funkční aplikace.
 
-\section{Aplikační logika}
+\section{Návrh uživatelského rozhraní}
+
+Přestože vyvíjíme single-page aplikaci, počítáme s~více obrazovkami pro pohodlnější navigaci. S~využitím knihovny React Router DOM\footnote{https://www.npmjs.com/package/react-router-dom} dokážeme simulovat existenci libovolného množství obrazovek a~zároveň zůstat na jedné stránce bez potřeby opětovného načítání. Tím se odlišíme od tradičních statických aplikací, kterým při každé změně URL včetně query parametrů musí server v~odpovědi poslat odpovídající HTML obsah. Náš přístup má ovšem nevýhodu z~pohledu strojového zpracování, neboť pro vygenerování obsahu stránky potřebujeme v~prohlížeči spustit JavaScript kód. Tím znemožníme zpracování naší aplikace prostřednictvím pouhých HTTP požadavků, což je podstatně jednodušší a~ekonomičtější varianta ve srovnání s~automatizací celého webového prohlížeče. Tento nedostatek ale kompenzujeme transparentním REST API, přes které si lze vyžádat strukturovaná data pomocí HTTP požadavků. Zároveň usnadníme strojové zpracování vyhledávačům, které automatizaci prohlížeče využívají, neboť v~detailech receptů a~ingrediencí zahrneme jejich JSON-LD reprezentaci.
+
+Aplikaci složíme ze $3$ základních uživatelských obrazovek: vyhledávání receptů, detail receptu a~detail ingredience. Všechny obrazovky musí být responzivní a~poradit si s~proměnlivou velikostí obrazovky.
+
+\subsection{Vyhledávání receptů}
+
+Domovskou stránku bude tvořit vyhledávání receptů na základě různých kritérií. Primárně bude k~dispozici výběr požadovaných ingrediencí, sekundárně filtry klíčových slov, kategorií, času přípravy, hodnocení a~nutričních hodnot. Všechny filtry bude možné odstranit samostatně i~najednou pomocí společného tlačítka pro smazání. Pro získání přesnějších výsledků bude při vyplňování filtrů k~dispozici našeptávač, který zobrazí známé možnosti a~spolu s~nimi počty receptů, které jsou při výběru tohoto nastavení k~dispozici. Výsledky budou zobrazovány na stránkách s~$24$ nebo $30$ kartami receptů. Přepínání stránek bude umístěno standardně ve spodní části stránky a~zároveň bude aktuální stránka figurovat v~query parametrech pro přímočarou podporu navigace v~historii prohlížeče. Karta receptu bude obsahovat název, popis, obrázek, hodnocení, počet recenzí, čas přípravy a~počet instrukcí. Navíc bude možné rozbalit seznam ingrediencí, ve kterém budou zvýrazněny aktuálně vyhledávané ingredience. Uživatel bude přesměrován na obrazovku s~detailem receptu při stisknutí tlačítka \texttt{View} nebo při kliknutí na obrázek receptu. Konkrétní rozložení obrazovek viz obrázek \ref{obr02:desktop-search-view} pro desktopová zařízení a \ref{obr02:mobile-search-view} pro mobilní zařízení.
+
+\begin{figure}[p]\centering
+\includegraphics[width=140mm]{../img/desktop-search-view}
+\caption{Obrazovka vyhledávání receptů pro desktopová zařízení.}
+\label{obr02:desktop-search-view}
+\end{figure}
+
+\begin{figure}[p]\centering
+\includegraphics[height=230mm]{../img/mobile-search-view}
+\caption{Obrazovka vyhledávání receptů pro mobilní zařízení.}
+\label{obr02:mobile-search-view}
+\end{figure}
+
+\begin{figure}[p]\centering
+\includegraphics[width=140mm]{../img/detail-view}
+\caption{Obrazovka detailu receptu.}
+\label{obr02:detail-view}
+\end{figure}
+
+\subsection{Detail receptu}
+
+Na obrazovce s~konkrétním receptem bude obsažen název, popis, obrázek, autor, datum publikování, hodnocení s~počtem recenzí, nutriční hodnoty a~samozřejmě ingredience a~postup přípravy. Rozložení pro větší obrazovky viz obrázek \ref{obr02:detail-view}, pro menší obrazovky se všechny karty zobrazí v $1$~sloupci analogicky k~rozložení \ref{obr02:mobile-search-view}. Jako budoucí rozšíření by bylo možné implementovat modul recenzí. V~první fázi by recenze byly pouze extrahovány ze zdrojových datasetů, v~další fázi by uživatelé mohli nové recenze přidávat prostřednictvím naší aplikace.
+
+\subsection{Detail ingredience}
+
+Na obrazovce detailu ingredience budou prezentována data z~otevřených znalostních grafů. Zaměříme se primárně na jméno, popis a~obrázek ingredience, které dle dostupných informací doplníme o~nutriční hodnoty, kategorie, místo původu a~další zajímavosti.
+
+\section{Návrh architektury}
 
 Při návrhu architektury aplikace budeme vycházet z~osvědčené kombinace technologií označované zkráceně jako \emph{MERN}. Pojmenování vzniklo složením prvních písmen klíčových technologií, tedy MongoDB, Express, React a~Node. Pro potřeby naší aplikace se této skupiny nebudeme držet zcela striktně a~systém MongoDB nahradíme rovněž dokumentovým databázovým systémem Apache \,CouchDB. Navíc mezi technologie zařadíme platformu Apache Solr pro pokročilejší vyhledávání receptů. Architektura naší aplikace znázorňující klíčové technologie a jejich propojení je ilustrována schématem \ref{obr02:architecture}. 
 
@@ -16,17 +52,17 @@ Při návrhu architektury aplikace budeme vycházet z~osvědčené kombinace tec
 
 Předzpracování dat bude klíčovou fází řešení spolu s~prezentační vrstvou na straně klienta. Serverová část aplikace bude vystupovat pouze jako prostředník mezi klientem a~databází, respektive platformou Solr pro vyhledávací dotazy. Jejím úkolem bude zprostředkování požadovaných dat z~perzistovaného úložiště, která téměř beze změny předá klientovi. Tento přístup si vybere daň v~podobě obsáhlejší databáze, neboť budeme ukládat i~taková data, která bychom dokázali vygenerovat z~ostatních informací. Nejdůležitější instancí tohoto opakování dat bude uložení JSON-LD reprezentace a~zároveň strukturovaných dat v~rámci každého dokumentu receptu. Strukturovaná data by bylo možné při každém dotazu odvodit z JSON-LD nebo naopak. Přesunuli bychom ale komplexitu převodu z~jednorázové fáze předzpracování na samotnou aplikaci, ať už na straně serveru či klienta. Příprava dat pro prezentaci by navíc při každém dotazu trvala o~něco déle, což by se při větším množství dat mohlo negativně odrazit na svižnosti aplikace a~tranzitivně na uživatelském zážitku.
 
-\section{Příprava dat}
+\subsection{Příprava dat}
 
 V~předchozí kapitole jsme si představili řadu alternativ pro získání datasetů s~recepty a~následně doplňujících informací k~ingrediencím. Dle požadavků aplikace potřebujeme minimálně $50\,000$ receptů z~aspoň $2$ různých zdrojů. Také vyžadujeme integraci $2$ nebo více znalostních grafů s~otevřenými daty. Nemáme spodní limit na počet ingrediencí, které musíme ze znalostních grafů extrahovat. Záleží totiž na úspěšnosti propojení našich ingrediencí s~entitami ze znalostních grafů, která se projeví až při praktickém testu.
 
 Přípravu dat můžeme dále rozdělit na $2$ základní fáze a~to extrakci a čištění dat. Ne všechna data jsou totiž vhodná pro přímou prezentaci uživateli. Jak jsme zmiňovali v~minulé kapitole, volně dostupné datasety s~recepty často cílí spíše na oblast strojového učení. Extrahovaná data je tedy potřeba manuálně zkontrolovat a navrhnout heuristiku, pomocí které bude většina dat normalizována, případně odstraněna při nesplnění zadaných kritérií. Vzhledem k charakteru problému a~omezené časové dotaci nelze na každou datovou sadu aplikovat deterministické řešení, které by eliminovalo všechny anomálie, proto se v~některých případech musíme spokojit s~heuristikou.
 
-\subsection{Extrakce dat}
+\subsubsection{Extrakce dat}
 
-Na tomto místě je vhodné rozhodnout, které ze zdrojů dat popsaných v~předchozí kapitole nakonec použijeme v~rámci našeho řešení. U~dat k~ingrediencím máme na výběr znalostní grafy DBpedia a~Wikidata, případně méně obsáhlý RDF dataset z~projektu FoodKG. Pro maximalizaci počtu nalezených výsledků se zaměříme na grafy DBpedia a~Wikidata. V~kategorii receptů zvolíme kombinaci statických datových sad s~recepty a~generování vlastních datasetů pomocí procesu web scraping. Během implementace vlastní extrakce dat zapojíme knihovnu Apify pro Node.js a~její koncept tzv.~\emph{actorů}, což jsou programy určené primárně pro cloudovou platformu Apify, kde jsou spouštěny uvnitř Docker kontejnerů. Mohou mít za úkol automatizaci libovolných úkonů prováděných ve webovém prohlížeči, od jednoduchého posílání e-mailů až po extrakci dat z~komplexních webových stránek. Actory lze pomocí nástroje Apify CLI spouštět i~lokálně, čehož pro jednodušší konfiguraci využijeme v~našem řešení. Volitelně lze aktivovat rotování IP adres, které chrání naši vlastní IP adresu před dočasným či dokonce trvalým zablokováním a~zlepšuje poměr úspěšných požadavků. Vzhledem k~obecně nižší míře blokování ze strany aplikací s~recepty by využití proxy nemělo být nutné, je ale vhodné. Počet současně odesílaných požadavků omezíme na rozumnou hranici, abychom zamezili přetížení zpracovávané webové aplikace.
+Na tomto místě je vhodné rozhodnout, které ze zdrojů dat popsaných v~předchozí kapitole nakonec použijeme v~rámci našeho řešení. U~dat k~ingrediencím máme na výběr znalostní grafy DBpedia a~Wikidata, případně méně obsáhlý RDF dataset z~projektu FoodKG. Pro maximalizaci počtu nalezených výsledků se zaměříme na grafy DBpedia a~Wikidata. V~kategorii receptů zvolíme kombinaci statických datových sad s~recepty a~generování vlastních datasetů pomocí procesu web scraping. Během implementace vlastní extrakce dat zapojíme knihovnu Apify pro Node.js a~její koncept tzv.~\emph{actorů}, což jsou programy určené primárně pro cloudovou platformu Apify, kde jsou spouštěny uvnitř Docker kontejnerů. Mohou mít za úkol automatizaci libovolných úkonů prováděných ve webovém prohlížeči, od jednoduchého posílání e-mailů až po extrakci dat z~komplexních webových stránek. Actory lze pomocí nástroje Apify CLI\footnote{https://www.npmjs.com/package/apify-cli} spouštět i~lokálně, čehož pro jednodušší konfiguraci využijeme v~našem řešení.
 
-\subsubsection{Food.com}
+\paragraph{Food.com}
 
 Vzhledem k~požadavkům definovaným v~předchozí kapitole nám bude vyhovovat dataset Food.com Recipes and~Interactions dostupný na platformě Kaggle, z~něhož jsme schopni získat přibližně $180\,000$ identifikátorů receptů a~také seznam normalizovaných ingrediencí. Dle provedené analýzy není vhodné použít textová data v~prezentační vrstvě vzhledem k jejich lowercase formátu. Navrhneme tedy řešení z~oblasti web scrapingu, které na vstupu přijme URL adresy s~detaily receptů, na každou adresu odešle požadavek GET a~z~HTML odpovědi extrahuje JSON-LD data. Program bude mít možnost získat přes CSS selektory libovolná data z~načteného HTML, pokud by v JSON-LD reprezentaci nebyla obsažena, nebo byla méně strukturována. Programu tedy přidělíme také zodpovědnost za tvorbu strukturovaných dat, která do vygenerovaného datasetu uloží ke každému receptu spolu s~jeho JSON-LD podobou. Strukturovanými daty zde rozumíme čas přípravy, počet porcí, klíčová slova, která jsou v~JSON-LD uložena ve společném řetězci namísto pole řetězců, hodnocení receptu s~počtem recenzí, nutriční hodnoty s~jednotkami měření a~ingredience s~množstvím a~jednotkou oddělenými od ostatního textu.
 
@@ -34,7 +70,7 @@ Extrahované výsledky uložíme do společného JSON souboru, který následně
 
 Výše popsané řešení extrakce dat z~Food.com má nevýhodu z~pohledu škálovatelnosti. Maximální počet receptů, které jsme schopni získat, je roven počtu receptů v~datasetu z~Kaggle. Celkový počet receptů na stránce Food.com se od doby pořízení datasetu zvětšil více než dvakrát na aktuálních $526\,851$ receptů. Nicméně i~s~naším zjednodušeným programem vyžadujícím připravené URL adresy detailů receptů jsme schopni získat téměř kompletní data. Zmíněný dataset Recipe1M+ v~době psaní této práce obsahuje téměř $510\,000$ URL adres receptů z~aplikace Food.com. Při potřebě většího škálování bychom mohli využít tato URL, neměli bychom k~nim ovšem normalizované ingredience a~byli bychom omezeni striktně akademickým využitím. Pro účely naší práce se spokojíme s~horní hranicí $180\,000$ receptů s~normalizovanými ingrediencemi. Tyto recepty jsou dle autorů datasetu Majumdera a~kol. podmnožinou receptů z~let $2000$-$2018$, které mají aspoň $3$~kroky postupu a~počet ingrediencí v rozmezí $4$ a $20$ \citep{majumder-etal-2019-generating}. Kód souvisejícího projektu pro generování personalizovaných receptů je dostupný jako open-source na platformě GitHub, lze tedy předpokládat, že datovou sadu lze využívat bez omezení.
 
-\subsubsection{Allrecipes}
+\paragraph{Allrecipes}
 
 Jako další zdroj receptů si vybereme webovou aplikaci Allrecipes. Pro ni sice nemáme k~dispozici podrobný dataset jako u~stránky Food.com, vystačíme si ale s~vlastní extrakcí dat prostřednictvím Apify actora. Mohli bychom využít prakticky stejnou šablonu, jako u~programu pro zpracování Food.com. S~využitím datasetu Recipe1M+ dokážeme získat $49\,000$ URL adres detailů receptů. Poměrně snadno bychom ale dokázali navrhnout pokročilejší řešení extrakce dat, které by dynamicky procházelo celou webovou stránku Allrecipes, našlo detaily všech receptů a~z~nich extrahovalo aktuální data. Tímto přístupem bychom odstranili závislost na datové sadě Recipe1M+ a~získali větší počet výsledků. Pro nalezení všech receptů bychom sice museli zpracovat více požadavků, aplikace Allrecipes ale využívá interní API, přes které lze získat URL adresy $48$ receptů v~rámci $1$~požadavku. Celkový počet receptů na Allrecipes se aktuálně pohybuje kolem $50\,000$, což lze zjistit spuštěním vyhledávání bez jakýchkoli nastavených filtrů.
 
@@ -58,17 +94,17 @@ Webová aplikace Allrecipes nabízí svým uživatelům ve vztahu k~ingrediencí
 
 Z atributů elementu \texttt{input} dokážeme rozpoznat název, množství i~jednotku ingredience. Tyto užitečné informace v~rámci extraktoru zacílíme pomocí CSS selektorů. Díky tomu získáme výrazně přesnější data, než prostřednictvím normalizovaných ingrediencí z~datasetu Food.com Recipes and~Interactions.
 
-\subsubsection{DBpedia}
+\paragraph{DBpedia}
 
 V~první fázi extrakce dat z~grafu DBpedia potřebujeme identifikovat entity ingrediencí, které dokážeme namapovat na jména surovin z~jednotlivých receptů. K~tomu využijeme nástroj Silk Workbench a~vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Pro každou ingredienci vyjádřenou pomocí DBpedia IRI pak extrahujeme vybrané informace včetně názvu, popisu, obrázku, kategorií a~místa původu. Z~nutričních hodnot se zaměříme na energii v~kaloriích nebo kilojoulech, dále na obsah tuku, sacharidů, bílkovin, vlákniny, cholesterolu a~cukru. Aktuálně se zabýváme pouze anglickou lokalizací aplikace, všechna textová data tedy omezíme na anglické výsledky. Jedinou povinnou informací bude název (label) ingredience, všechna ostatní data budou nepovinná, neboť se formát i~množství dat napříč ingrediencemi výrazně liší.
 
 Teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny ingredience a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale v~závislosti na počtu nalezených spojení mezi surovinami mohl skončit příliš dlouhý a~nenechal by prostor pro škálování. Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami entit ingrediencí. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu s~detaily ingrediencí. Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých formátů. Pro naše účely bude nejpraktičtější formát JSON-LD, jehož obsah využijeme v~hlavičkách HTML dokumentů ingrediencí. Se SPARQL endpointem lze komunikovat přes grafické rozhraní ve webovém prohlížeči nebo prostřednictvím HTTP GET požadavků. Pro snadnější automatizaci procesu extrakce využijeme druhou možnost, kde obsah dotazu předáme na místě query parametru s~názvem \texttt{query}.
 
-\subsubsection{Wikidata}
+\paragraph{Wikidata}
 
 IRI adresy požadovaných entit z~Wikidata získáme opět pomocí aplikace Silk Workbench. Také samotný proces extrakce dat bude probíhat analogicky k~postupu pro data z~DBpedia. I~zde využijeme HTTP GET požadavky na SPARQL endpoint, kde prostřednictvím query parametrů předáme obsah dotazu a~požadovaný formát výsledku. Projekt Wikidata neposkytuje reprezentaci JSON-LD, vystačíme si ale s~běžným JSON formátem, který lze vyžádat přes hodnotu query parametru \texttt{format} nastavenou na \texttt{json}. Z~této reprezentace pak sami vytvoříme odpovídající JSON-LD formát, který je vhodný pro strukturovaná data v~hlavičce HTML dokumentu.
 
-\subsection{Čištění dat}
+\subsubsection{Čištění dat}
 
 V~rámci fáze čištění dat potřebujeme extrahovaná data převést do formátu vhodného k~prezentaci koncovému uživateli. Jednotlivé kroky procesu čištění mohou být rozloženy do více míst přípravy dat. Již během extrakce dat probíhá odstranění mezer a~znaků nového řádku na okrajích řetězců. Dále je potřeba se vypořádat se znaky, které jsou kvůli vnoření v~HTML dokumentu kódovány jinými znaky, aby bylo zajištěno jejich korektní zobrazení. Takové znaky se vyskytují např. v~extrahovaných JSON-LD dokumentech, před jejich uložením do databáze tedy provedeme dekódování. Rekurzivně projdeme obsah každého objektu načteného z~JSON-LD dokumentu a~všechny řetězce dekódujeme s~využitím open-source knihoven pro Node.js. V~našem řešení integrujeme knihovny \texttt{html-escaper} a~\texttt{html-entities} dostupné přes správce balíčků npm.
 
@@ -80,7 +116,7 @@ S~normalizovanými ingrediencemi z~Food.com Recipes and~Interactions souvisí da
 
 Dalším úkolem čisticí fáze bude normalizace JSON-LD reprezentace ingrediencí z~grafu DBpedia. Ve srovnání s~projektem Wikidata jsme zde ve výhodě, jelikož data obdržíme přímo v JSON-LD. Zároveň ale extrahujeme data pro více ingrediencí najednou a~každá z~nich má vlastní schéma, které se většinou plně neshoduje s~ostatními entitami. Při skupinové extrakci dat se ale musí vytvořit univerzální schéma, kterým lze vyjádřit všechny obsažené informace. Naším úkolem bude projít uložené kolekce ingrediencí a~pro každou ingredienci vytvořit minimální JSON-LD kontext, kterým ji lze popsat. Jednotlivé ingredience pak do databáze uložíme vždy s~vlastním JSON-LD kontextem. V~praxi se totiž často stává, že objevíme pod stejnou vlastností různé typy hodnot. Např. region původu ingredience může nést IRI příslušné entity z~grafu DBpedia, ale také prostý literál. Skutečný typ musí být řádně definován kontextem JSON-LD dokumentu. Proto není vhodné mít společný kontext pro všechny ingredience, neboť by u~některých vlastností existoval duplicitní popis použitých typů.
 
-\section{Databázový model}
+\subsection{Databázový model}
 
 Pro uložení dat receptů a~ingrediencí zvolíme dokumentovou databázi Apache CouchDB, často označovanou zkráceně CouchDB. Nejbližší alternativou z~řad NoSQL dokumentových databází by byl systém MongoDB, který je stejně jako databáze CouchDB open-source. Pro naše potřeby by dobře fungoval libovolný z~těchto systémů, neboť chceme využít zejména konceptu dokumentových databází, které typicky nevyžadují striktní schéma a~umožňují tak kompaktní uložení různorodých dat ve formátu JSON. To je v~naší doméně cenná vlastnost, neboť plánujeme ukládat data poměrně komplexní struktury --- vezměme v~potaz například JSON-LD formát s~mnoha zanořenými objekty. Také extrahujeme data z~více zdrojů a~vyžadování zcela jednotného rozhraní by nám v~některých situacích zbytečně zkomplikovalo práci. Na základě jakého kritéria tedy rozhodujeme mezi variantami CouchDB a~MongoDB?
 
@@ -90,23 +126,23 @@ V~systému CouchDB lze snadno vytvářet a~spravovat více databází neboli kol
 
 S~CouchDB můžeme komunikovat přes webové rozhraní skrze přehlednou aplikaci Fauxton, pomocí REST~API nebo prostřednictvím již zmíněné knihovny v~prostředí Node.js. Pro automatizované nahrávání dokumentů využijeme oficiální knihovnu \texttt{nano}. S~velikostí našeho projektu si můžeme dovolit při nahrávání nových dat nejprve stávající data odstranit a~poté je vložit do čisté databáze. Kdybychom totiž chtěli dokumenty aktualizovat, potřebovali bychom u~každého z~nich poskytnout aktuální verzi, což by pro přepsání celé databáze byl zbytečně komplikovaný postup. S~rostoucím počtem dokumentů bychom ale nejspíše museli přistoupit na aktualizaci dat namísto jejich odstraňování a~opětovného nahrávání, neboť již pro přidání kolekce o~velikosti $50\,000$ dokumentů se pohybujeme v~řádu delších minut.
 
-\section{Indexy}
+\subsection{Indexy}
 
 Pro uložení dokumentů do databáze CouchDB není potřeba specifikovat žádné schéma. Během konfigurace platformy Apache Solr pro vyhledávání se ovšem bez striktně definovaného schématu neobejdeme. Respektive abychom byli přesní, Solr dokáže na základě vložených dat odvodit schéma dynamicky, často ale nezvolí datový typ správně a~navíc je při výběru zbytečně generický. Představme si libovolný řetězec z~dokumentu receptu, například text jedné ingredience. Pokud Solr nenajde ve schématu žádnou definici typu u~vlastnosti ingredience, vytvoří pro ni dynamický index typu \texttt{string}. Na první pohled se zdá být vše v~pořádku, když si ale projdeme dostupné typy, najdeme mezi nimi i~podstatně specifičtější variantu \texttt{text\_en}. Typ anglického textu je pro naši aktuální lokalizaci ideální, neboť nabízí vestavěnou podporu skloňování a~časování anglických slov. V~praxi nám pomůže najít více relevantních výsledků. Uživatel může zadat například ingredienci \texttt{tomatoes}, Solr provede normalizaci vyhledávaného termínu a~vrátí recepty obsahující mezi surovinami nejen slova \texttt{tomatoes}, ale také \texttt{tomato}.
 
 Prvním krokem pro práci s~platformou Solr je tedy kompletní návrh schématu pro dokumenty receptů. Pro vytvoření schématu využijeme skript operující nad REST~API poskytovaným systémem Solr, čímž proces automatizujeme a~usnadníme případnou migraci na jiné zařízení. Solr umožňuje data rozdělit do tzv.~jader, založíme tedy samostatné jádro pro dokumenty s~recepty a~vytvoříme infrastrukturu, která umožní snadné přidání nového jádra, pokud by v~budoucnu bylo potřeba. V~rámci současných požadavků aplikace by se mohlo zdát, že budeme vyhledávací schopnosti platformy Solr potřebovat i~pro dokumenty ingrediencí, konkrétně pro řešení našeptávače surovin. Seznam doporučených přísad by se totiž měl aktualizovat na základě vstupu uživatele. Po napsání každého nového znaku se musí zobrazit pouze ingredience, které odpovídají vyhledávanému výrazu. Přirozeně nebereme v~potaz velikost písmen a~vzhledem k~výhradně anglické lokalizaci se v~současnosti nezabýváme ani diakritikou. Využití systému Solr by nám pomohlo nabídnout více relevantních ingrediencí, neboť bychom vyhledávaný výraz mohli interpretovat jako anglický text a~poradit si tak s~jeho formátem v~různých tvarech a časech. Kvůli každému napsanému znaku bychom ale museli odeslat dotaz serveru hostícímu instanci Solr, což by generovalo poměrně významné zpoždění vlivem komunikace po síti. Spokojíme se tedy s~jednodušší architekturou našeptávače --- vyžádáme si všechny ingredience najednou a~zobrazení relevantních návrhů během psaní vyřešíme na straně klienta. Jak lze ale získat seznam všech unikátních ingrediencí, pokud máme v~Solr uloženy pouze dokumenty receptů? Odpovědí je fasetové vyhledávání.
 
-\subsection{Fasetové vyhledávání}
+\subsubsection{Fasetové vyhledávání}
 
 Fasetové vyhledávání, označované také jako fasetová navigace, je způsob interakce, během které uživatel filtruje výsledky výběrem validních hodnot fasetového klasifikačního systému. Tento styl vyhledávání nevyžaduje hierarchické uspořádání nabízených možností, díky čemuž lze filtry přidávat i~odebírat v~libovolném pořadí. Navíc uživatel typicky předem zná počet výsledků, které se po aplikování daného filtru zobrazí \citep{faceted-search}. V~kontextu naší aplikace se fasetová navigace hodí pro jednotlivé vlastnosti vyhledávání, jakými jsou nejen ingredience, ale také klíčová slova, kategorie, typ kuchyně, čas přípravy či hodnocení. Každý z~těchto filtrů je zcela nezávislý, není tedy žádoucí vytvářet kolem nich hierarchii. Nedávalo by smysl zpřístupnit například vyhledávání dle ingrediencí až po výběru kategorie receptu. Na druhou stranu, výběr kategorií může ovlivnit (respektive omezit) nabídku ingrediencí ve fasetové navigaci a~stejně tak volba určitých ingrediencí může vyřadit některé kategorie receptů.
 
-Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace. Zároveň nastavíme ve schématu tzv. \emph{copy field} z~položky zdrojových ingrediencí do položky fasetových ingrediencí. Díky tomu bude stačit během přidávání dokumentů vložit ingredience pouze do základní položky, přičemž do položky pro fasetové vyhledávání se zkopírují automaticky dle schématu.
+Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace.
 
-\subsection{Zvýraznění nalezených výrazů}
+\subsubsection{Zvýraznění nalezených výrazů}
 
 Dalším konceptem, se kterým se během vyhledávání pomocí Solr setkáme, bude tzv. \emph{highlighting} neboli zvýraznění vyhledaných výrazů. Využijeme jej při prezentaci surovin jakožto primárního filtru. U~libovolného receptu na vyhledávací obrazovce bude možné zobrazit kompletní seznam ingrediencí. Pro lepší přehlednost zvýrazníme aktuálně vyhledávané ingredience tučným písmem a~pro přesnou identifikaci těchto pojmů využijeme vestavěnou funkci od platformy Solr. Informace o~zvýrazněných ingrediencích doručíme na frontend aplikace spolu s~dokumenty receptů.
 
-\subsection{Model receptu}
+\subsubsection{Model receptu}
 
 Schéma receptu navrhneme dle požadavků na vlastnosti, podle kterých potřebujeme recepty vyhledávat. Zároveň zde ale patří definice všech položek, které budeme na vyhledávací stránce zobrazovat. Teoreticky bychom mohli platformu Solr využít pouze na vyhledání identifikátorů receptů na základě zadaných indexů a~ostatní informace získat z~databáze CouchDB. Tento přístup by optimalizoval množství paměti využívané systémem Solr a~odstranil poměrně výraznou duplicitu dat. Na druhou stranu by do zpracování vyhledávacích dotazů zanesl větší komplexitu a~časovou prodlevu, která by vznikla nadbytečnou komunikací s~\,CouchDB. Pokud si budeme všechny potřebné informace pro vyhledávací stránku držet v~systému Solr, bude nám stačit zpracovat pouze jeden vyhledávací dotaz pro zobrazení jedné stránky receptů. Rychlé vyhledávání je klíčovou funkcionalitou naší aplikace, proto zde upřednostníme optimalizaci časové složitosti namísto paměťové.
 
@@ -142,17 +178,17 @@ Schéma dokumentu receptu uloženého v~Solr bude následující (jedná se pouz
 
 Ne všechny obsažené položky nutně využijeme v~první verzi naší prezentační vrstvy (například datum a~počet minut samotné přípravy či vaření pokrmu). Jejich zahrnutím ale usnadníme přidávání nových funkcí typu třídění výsledků na základě data publikace nebo vyřazení receptů, u kterých nestačí pouhá příprava ze syrových ingrediencí a~je potřeba počítat s~vařením. Větší výběr informací nám také umožní jednoduchou iteraci nad různými rozloženími uživatelských obrazovek, což je užitečné při hledání vhodného designu.
 
-\section{Backend}
+\subsection{Backend}
 
 Jak bylo zmíněno v~úvodní části této kapitoly, serverová část aplikace bude sloužit jako poměrně jednoduchá mezivrstva pro zprostředkování komunikace mezi klientem, platformou Solr a~databází CouchDB. Základy architektury položíme na zvoleném frameworku Express.js pro Node.js, který umožňuje snadnou definici REST API a~delegování přijímaných požadavků na vlastní komponenty. Budeme podporovat $4$~endpointy pro HTTP GET požadavky, jmenovitě získání všech receptů nebo ingrediencí a~vyžádání $1$~receptu či ingredience dle jejich unikátního id. V těle odpovědi na libovolný dotaz budou figurovat data v~JSON formátu, naše rozhraní tedy můžeme označit jako JSON~API. Zároveň budeme pracovat s~query parametry, prostřednictvím kterých předáme serveru informaci o~požadovaných filtrech, počtu výsledků na $1$~stránku a~offsetu pro zajištění funkcionality stránkování.
 
 V~závislosti na zvoleném endpointu se s~dotazem obrátíme na Solr nebo \,CouchDB. Pro oba systémy vytvoříme odpovídající modely spravovaných dokumentů. U~Solr nám bude stačit model pro recepty z~důvodů popsaných v~předchozí sekci. U~CouchDB pak definujeme modely pro recepty i~suroviny. Model bude mít za úkol vytvořit a~uchovat spojení s~úložištěm, přičemž vytvoření instance spojení zajistí příslušná komponenta factory s~využitím návrhového vzoru singleton. Díky němu se vyhneme opětovné inicializaci spojení. Dále bude model schopen vytvořit dotazy na základě informací z~query parametrů a~prostřednictvím navázaného spojení tyto dotazy vyhodnotit nad dokumenty v~Solr nebo CouchDB. Následně přijatá data převede do formátu očekávaného na frontendu aplikace (typicky zjednoduší výchozí schéma odpovědi a~relevantní data uloží s~menší mírou zanoření). Data budou poté ve formátu JSON a~s~příslušným stavovým kódem odeslána klientovi. 
 
-\subsection{JSON API}
+\subsubsection{JSON API}
 
 Zde soustředíme konkrétní podobu API pro získání JSON dokumentů s~recepty a~ingrediencemi. Prefixem potřebným pro složení kompletní URL adresy je název domény, v~našem vývojovém prostředí \texttt{localhost:5000}.
 
-\subsubsection{Získání všech dokumentů}
+\paragraph{Získání všech dokumentů}
 
 Dotaz na recepty využijeme v~kontextu vyhledávací obrazovky. Požadavek obohatíme o~query parametry nesoucí informace o~požadovaných ingrediencích, klíčových slovech, kategoriích a~dalších filtrech. Za normálních okolností si vyžádáme pouze omezené množství výsledků odpovídající počtu receptů na $1$~stránce. Tím získáme odpověď v~podstatně kratším čase, což se projeví dřívějším zahájením renderování výsledků vyhledávání. Chceme uživateli API umožnit nastavení vlastního limitu počtu výsledků, neboť se limit může na frontendu měnit nezávisle na zbytku aplikace. Navíc tím také usnadníme práci vývojářům, kteří by potřebovali z~naší aplikace extrahovat strukturovaná data, neboť by jim stačil výrazně menší počet požadavků. Nastavíme ovšem maximální limit na počet výsledků v~rámci $1$~požadavku, abychom zamezili situacím, kdy se uživatel API pokusí najednou získat všechna data z~naší aplikace.
 
@@ -164,7 +200,7 @@ Ingredience máme uloženy pouze v~databázi CouchDB, dotaz z~endpointu ingredie
 \end{code}
 %$
 
-\subsubsection{Získání dokumentu dle id}
+\paragraph{Získání dokumentu dle id}
 
 Požadavky směřující na následují endpointy jsou vyřizovány nalezením detailu receptu nebo ingredience v~databázi CouchDB:
 
@@ -174,11 +210,11 @@ Požadavky směřující na následují endpointy jsou vyřizovány nalezením d
 \end{code}
 %$
 
-\section{Frontend}
+\subsection{Frontend}
 
 Návrh klientské vrstvy bude silně ovlivněn charakterem knihovny React, která je založena na designu tzv. \emph{komponent}. Ty mohou být modelovány objektově orientovaným způsobem jako třídy nebo funkcionálním jako samostatné exportované funkce. Autoři dokumentace knihovny React doporučují v~nových projektech využívat primárně funkcionální komponenty a~pro práci se stavem a~životním cyklem komponenty využít tzv. \emph{Hooks}. Většina z~důležitých funkcí, které byly dříve implementovány pouze v~objektových komponentách, je již dostupná funkcionálním komponentám skrze Hooks a~podpora zbývajících funkcí je plánována \citep{class-or-functional}. Architekturu tedy založíme na doporučených funkcionálních komponentách.
 
-\subsection{Funkcionální komponenta}
+\subsubsection{Funkcionální komponenta}
 
 Jedná se o~jednoduchou funkci přijímající tzv.~\emph{props} na místě parametrů a~s~návratovým typem základního elementu knihovny React. Tyto elementy mohou být zapsány pomocí \emph{JSX}, což je syntaktické rozšíření jazyka JavaScript. Připomíná šablonovací jazyk, neboť kombinuje syntaxi jazyka HTML s~kódem psaným v~JavaScriptu. React zajišťuje renderování JSX elementů do HTML dokumentu prostřednictvím rozhraní DOM \citep{jsx-intro}. Příklad jednoduchého JSX elementu, který se v~HTML vygeneruje jako tag \texttt{h1} s~textem \texttt{Headline}:
 
@@ -189,47 +225,11 @@ const element = <h1>Headline</h1>;
 
 Ekvivalentem pro vývoj v~jazyce TypeScript je formát \emph{TSX}, který budeme používat v~naší aplikaci. Rozlišujeme čistě prezentační komponenty, které pouze renderují data přijatá přes parametr \texttt{props}, a~stavové komponenty způsobující vedlejší efekty v~podobě změny stavu aplikace.
 
-\subsection{Obrazovky uživatelského rozhraní}
-
-Přestože vyvíjíme single-page aplikaci, počítáme s~více obrazovkami pro pohodlnější navigaci. S~využitím knihovny React Router dokážeme simulovat existenci libovolného množství obrazovek a~zároveň zůstat na jedné stránce bez potřeby opětovného načítání. Tím se odlišíme od tradičních statických aplikací, kterým při každé změně URL včetně query parametrů musí server v~odpovědi poslat odpovídající HTML obsah. Náš přístup má ovšem nevýhodu z~pohledu strojového zpracování, neboť pro vygenerování obsahu stránky potřebujeme v~prohlížeči spustit JavaScript kód. Tím znemožníme zpracování naší aplikace prostřednictvím pouhých HTTP požadavků, což je podstatně jednodušší a~ekonomičtější varianta ve srovnání s~automatizací celého webového prohlížeče. Tento nedostatek ale kompenzujeme transparentním REST API, přes které si lze vyžádat strukturovaná data pomocí HTTP požadavků. Zároveň usnadníme strojové zpracování vyhledávačům, které automatizaci prohlížeče využívají, neboť v~detailech receptů a~ingrediencí zahrneme jejich JSON-LD reprezentaci.
-
-Aplikaci složíme ze $3$ základních uživatelských obrazovek: vyhledávání receptů, detail receptu a~detail ingredience. Všechny obrazovky musí být responzivní a~poradit si s~proměnlivou velikostí obrazovky.
-
-\subsubsection{Vyhledávání receptů}
-
-Domovskou stránku bude tvořit vyhledávání receptů na základě různých kritérií. Primárně bude k~dispozici výběr požadovaných ingrediencí, sekundárně filtry klíčových slov, kategorií, času přípravy, hodnocení a~nutričních hodnot. Všechny filtry bude možné odstranit samostatně i~najednou pomocí společného tlačítka pro smazání. Pro získání přesnějších výsledků bude při vyplňování filtrů k~dispozici našeptávač, který zobrazí známé možnosti a~spolu s~nimi počty receptů, které jsou při výběru tohoto nastavení k~dispozici. Výsledky budou zobrazovány na stránkách s~$24$ nebo $30$ kartami receptů. Přepínání stránek bude umístěno standardně ve spodní části stránky a~zároveň bude aktuální stránka figurovat v~query parametrech pro přímočarou podporu navigace v~historii prohlížeče. Karta receptu bude obsahovat název, popis, obrázek, hodnocení, počet recenzí, čas přípravy a~počet instrukcí. Navíc bude možné rozbalit seznam ingrediencí, ve kterém budou zvýrazněny aktuálně vyhledávané ingredience. Uživatel bude přesměrován na obrazovku s~detailem receptu při stisknutí tlačítka \texttt{View} nebo při kliknutí na obrázek receptu. Konkrétní rozložení obrazovek viz obrázek \ref{obr02:desktop-search-view} pro desktopová zařízení a \ref{obr02:mobile-search-view} pro mobilní zařízení.
-
-\begin{figure}[p]\centering
-\includegraphics[width=140mm]{../img/desktop-search-view}
-\caption{Obrazovka vyhledávání receptů pro desktopová zařízení.}
-\label{obr02:desktop-search-view}
-\end{figure}
-
-\begin{figure}[p]\centering
-\includegraphics[height=230mm]{../img/mobile-search-view}
-\caption{Obrazovka vyhledávání receptů pro mobilní zařízení.}
-\label{obr02:mobile-search-view}
-\end{figure}
-
-\begin{figure}[p]\centering
-\includegraphics[width=140mm]{../img/detail-view}
-\caption{Obrazovka detailu receptu.}
-\label{obr02:detail-view}
-\end{figure}
-
-\subsubsection{Detail receptu}
-
-Na obrazovce s~konkrétním receptem bude obsažen název, popis, obrázek, autor, datum publikování, hodnocení s~počtem recenzí, nutriční hodnoty a~samozřejmě ingredience a~postup přípravy. Rozložení pro větší obrazovky viz obrázek \ref{obr02:detail-view}, pro menší obrazovky se všechny karty zobrazí v $1$~sloupci analogicky k~rozložení \ref{obr02:mobile-search-view}. Jako budoucí rozšíření by bylo možné implementovat modul recenzí. V~první fázi by recenze byly pouze extrahovány ze zdrojových datasetů, v~další fázi by uživatelé mohli nové recenze přidávat prostřednictvím naší aplikace.
-
-\subsubsection{Detail ingredience}
-
-Na obrazovce detailu ingredience budou prezentována data z~otevřených znalostních grafů. Zaměříme se primárně na jméno, popis a~obrázek ingredience, které dle dostupných informací doplníme o~nutriční hodnoty, kategorie, místo původu a~další zajímavosti.
-
-\subsection{Hierarchie komponent}
+\subsubsection{Hierarchie komponent}
 
 Se znalostí rozložení jednotlivých uživatelských obrazovek navrhneme příslušný systém komponent. Můžeme postupovat směrem od komponent s~největším dosahem, které odpovídají jedné obrazovce, ale také opačným směrem od komponent reprezentujících jednu základní část našeho datového modelu, například obrázek receptu. Snažíme se dodržovat princip jedné odpovědnosti a jakmile komplexita některé z~komponent začne příliš stoupat, provedeme dekompozici a~část práce přesuneme do komponenty potomka. Častým postupem je předání odkazu na funkci komponentě potomka. Funkce je pak zavolána jako callback například po stisknutí tlačítka, které je ve správě vnořené komponenty. Vztah předka a potomka bychom mohli přirovnat k~jeho pojetí v modelu DOM, kde by komponenty odpovídaly jednotlivým elementům, které lze do sebe vnořit. Nejedná se o~koncept dědičnost z~objektového návrhu, kde třída potomka vystupuje jako specializace třídy předka, musí splňovat všechny vlastnosti předka a~volitelně poskytovat dodatečné vlastnosti a~funkce.
 
-\subsubsection{Kostra aplikace}
+\paragraph{Kostra aplikace}
 
 Kořenem našeho stromu komponent bude \texttt{BrowserRouter}, komponenta pocházející z~knihovny React Router. Ta bude obsahovat jedinou komponentu \texttt{App}, kterou dále rozdělíme na základní komponenty \texttt{Header}, \texttt{Routes} a~\texttt{Footer}. Komponenty \texttt{Header} a~\texttt{Footer} budou společné pro celou aplikaci, proto mohou být na úrovni komponenty \texttt{Routes}. Potomci komponenty \texttt{Routes} budou odpovídat jednotlivým obrazovkám, budeme tedy mít $3$ komponenty \texttt{Route} s~následujícími cestami provázanými s URL adresami:
 
@@ -248,7 +248,7 @@ Kořenem našeho stromu komponent bude \texttt{BrowserRouter}, komponenta pochá
 \label{obr02:react-app}
 \end{figure}
 
-\subsubsection{Komponenta vyhledávání receptů}
+\paragraph{Komponenta vyhledávání receptů}
 
 Postup dekompozice si ukážeme na zjednodušeném převodu obrazovky pro vyhledávání receptů na komponenty knihovny React. Obsah celé vyhledávací obrazovky budeme reprezentovat komponentou \texttt{Recipes}. Ta bude zajišťovat mapování filtrů a~současné stránky prohlížení na query parametry URL adresy. Dále bude komunikovat s~REST API, konkrétně s~endpointem pro vyhledávání receptů \texttt{/api/recipes}. Výsledky receptů si vyžádá prostřednictvím asynchronního GET požadavku a~jakmile data obdrží, předá je specializovaným komponentám pro zajištění renderování. Těmito komponentami rozumíme potomky komponenty \texttt{Recipes}.
 
@@ -264,11 +264,11 @@ Komponenta \texttt{RecipeCardContent} se postará o~zobrazení obrázku, názvu 
 
 Finální dekompozice komponenty \texttt{Recipes} bude samozřejmě o~něco složitější, neboť si kromě karet receptů musíme poradit také se zobrazením vyhledávacích filtrů, stránkováním a~nadpisem indikujícím aktuální stav vyhledávání. Rovněž budeme chtít uživatele informovat o~úspěšně přidaných nebo odstraněných filtrech prostřednictvím krátké notifikace. Během implementace uplatníme výše popsané principy dekompozice a~také se pokusíme v~co největší míře zapojit již hotové komponenty poskytované knihovnou Material UI.
 
-\section{Alternativní správa dat}
+\subsection{Alternativní správa dat}
 
 Při návrhu architektury ukládání a~dotazování se nad daty receptů a~ingrediencí bychom se mohli vydat cestou konstrukce vlastního znalostního grafu. Museli bychom definovat ontologii, pomocí které bychom byli schopni kompletně popsat svou doménu receptů i~surovin. Sestrojený graf bychom nahráli do tzv.~\emph{RDF triplestore}, což je typ grafové databáze specializované na jednoduchá RDF tvrzení ve formátu trojic: \emph{subjekt}, \emph{predikát} a~\emph{objekt}. Vrcholy grafu jsou reprezentovány entitami subjektů a~objektů, orientované hrany mezi nimi modelujeme pomocí predikátů. Nad uloženými daty se lze následně dotazovat pomocí jazyka SPARQL, se kterým jsme se setkali při extrakci dat ze znalostních grafů DBpedia a~Wikidata.
 
-\subsection{Projekt Linked Recipes}
+\subsubsection{Projekt Linked Recipes}
 
 Výše uvedený přístup byl otestován v~rámci souvisejícího projektu Linked \,Recipes\footnote{https://github.com/lhotanok/LinkedRecipes}, který vznikl jako semestrální práce v~předmětu Data na Webu vedeném RNDr.~Jakubem~Klímkem,~Ph.D. v~roce $2022$. Součástí projektu bylo získání dat s~recepty ze $3$~různých zdrojů, dále jejich převedení do RDF formátu v~libovolné serializaci, nalezení linků mezi datasety navzájem i~s~externími grafy a~na závěr vytvoření jednoduché aplikace, která všechna data propojila a~umožnila nad nimi spouštět SPARQL dotazy. Jako statické zdroje dat byly vybrány datasety Food.com Recipes and~Interactions a BBC Recipes. Ty byly obohaceny o~dataset vygenerovaný z~webové aplikace Allrecipes a~jako zástupci externích grafů byly zvoleny projekty DBpedia a~Wikidata. Je zde tedy velký překryv s~datovými sadami využívanými v~naší aplikaci pro vyhledávání receptů.
 
@@ -276,4 +276,4 @@ Aplikace Linked Recipes je napsána v~jazyce Java a~pro obsluhu HTTP požadavků
 
 Aplikace si díky RDF triplestore a~SPARQL dotazům dokáže poměrně snadno poradit s~vyhledáním receptů dle ingrediencí, včetně zákazu vybraných ingrediencí. Také zvládá filtrovat recepty na základě povoleného rozmezí nutričních hodnot. Dalším v~aplikaci demonstrovaným příkazem je sestavení grafu ingrediencí s~využitím dat z~grafu Wikidata. Aplikace má k~dispozici seznam entit z~Wikidata, které se namapovaly na ingredience datasetů s~recepty. Přímo za běhu pak získává odkazy na obrázky k~daným ingrediencím a~vkládá je do HTML dokumentu. Nepotřebuje si tedy data k~ingrediencím z~Wikidata ukládat do interní databáze, čímž se zjednoduší architektura aplikace. Nevýhodou je ale podstatně delší čas potřebný k~získání a~zobrazení informací.
 
-Pokud bychom se rozhodli pro stejný návrh aplikace jako v~projektu Linked Recipes, nahradili bychom vrstvy CouchDB a~Solr úložištěm RDF triplestore. To by v~sobě mělo uložena všechna data stejně jako CouchDB a~zároveň by řešilo vyhledávací dotazy namísto platformy Solr. Rychlost vyhledávání by byla závislá pouze na optimalizaci SPARQL dotazů. Narazili bychom na problém, pokud bychom se nespokojili s~vyhledáváním dle přesné shody a~vyžadovali chytřejší řešení po vzoru Solr a~jeho vyhledávání v~anglickém textu. Dále bychom se museli vypořádat s~požadavkem fasetového vyhledávání, pro které máme v~Solr přímou podporu na straně serveru. Fasetové vyhledávání se obvykle nepoužívá v~přímé kombinaci s~RDF modelem z~důvodu rizika, že by příkazy potřebné k~jeho podpoře byly příliš komplexní a~jejich výkon nedostačující \citep{sparql-facet}. Sehnat dostatečně výkonné a~dobře zdokumentované řešení by tedy bylo podstatně složitější v porovnání s~využitím osvědčeného Apache Solr nebo jeho alternativ v~podobě ElasticSearch\footnote{https://www.elastic.co/guide/en/app-search/current/facets-guide.html} či Sphinx\footnote{http://sphinxsearch.com/blog/2013/06/21/faceted-search-with-sphinx/}.
+Pokud bychom se rozhodli pro stejný návrh aplikace jako v~projektu Linked Recipes, nahradili bychom vrstvy CouchDB a~Solr úložištěm RDF triplestore. To by v~sobě mělo uložena všechna data stejně jako CouchDB a~zároveň by řešilo vyhledávací dotazy namísto platformy Solr. Rychlost vyhledávání by byla závislá pouze na optimalizaci SPARQL dotazů. Narazili bychom na problém, pokud bychom se nespokojili s~vyhledáváním dle přesné shody a~vyžadovali chytřejší řešení po vzoru Solr a~jeho vyhledávání v~anglickém textu. Dále bychom se museli vypořádat s~požadavkem fasetového vyhledávání, pro které máme v~Solr přímou podporu na straně serveru. Fasetové vyhledávání se obvykle nepoužívá v~přímé kombinaci s~RDF modelem z~důvodu rizika, že by příkazy potřebné k~jeho podpoře byly příliš komplexní a~jejich výkon nedostačující \citep{sparql-facet}. Sehnat dostatečně výkonné a~dobře zdokumentované řešení by tedy bylo podstatně složitější v porovnání s~využitím osvědčeného Solr nebo jeho alternativ v~podobě ElasticSearch\footnote{https://www.elastic.co/guide/en/app-search/current/facets-guide.html} či Sphinx\footnote{http://sphinxsearch.com/blog/2013/06/21/faceted-search-with-sphinx/}.
