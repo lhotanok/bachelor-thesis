@@ -20,7 +20,7 @@ Následuje výčet funkcionalit, které by aplikace svým uživatelům měla nab
     \item Aplikace poskytuje možnost smazání všech vyhledávacích filtrů jedním kliknutím, ale také mazání po jednom filtru.
     \item Aplikace zobrazuje uživateli všechny nalezené výsledky bez omezení na maximální počet výsledků.
     \item Aplikace při otevření vyhledávací obrazovky bez zadaných filtrů zobrazuje všechny recepty, které má v~databázi.
-    \item Aplikace umožňuje zobrazení detailu receptu otevřením nalezeného výsledku.
+    \item Aplikace umožňuje zobrazení detailu receptu bez přesměrování na zdrojovou stránku.
     \item Aplikace zobrazuje pouze recepty s~titulní fotografií.
     \item Aplikace na vyhledávací stránce pro každý nalezený recept zobrazuje jeho název, popis, obrázek, čas přípravy, hodnocení a~počet recenzí.
     \item Aplikace nabízí náhledy všech ingrediencí u~vyhledaných receptů a~zvýrazňuje aktuálně vyhledávané ingredience.
@@ -176,7 +176,7 @@ Pokusíme se získat z~DBpedia i~Wikidata co nejvíce ze zmíněných informací
 
 \section{Úspěšné webové aplikace s recepty}
 
-V~této sekci projdeme konkrétní příklady úspěšných webových aplikací z~domény vyhledávání receptů a~uvedeme, v~čem se od nich plánujeme odlišit a~které rozšiřující funkce naše aplikace nabídne. Stránek v~oblasti gastronomie a~přípravy pokrmů existuje velké množství, vybereme tedy podmnožinu těch nejznámějších na základě jejich pozice ve vyhledávaných výsledcích. Pro přibližnou analýzu návštěvnosti využijeme kombinaci dotazu \texttt{recipes by ingredients} ve vyhledávači Google, dále položíme stejný dotaz platformě Spyfu\footnote{https://www.spyfu.com/} a nakonec zkontrolujeme kategorii \texttt{Cooking and Recipes} na stránce Similarweb\footnote{https://www.similarweb.com/}. Vzhledem k~anglické lokalizaci naší aplikace zkontrolujeme vyhledávané výsledky na Google přes IP adresu amerického původu a~kategorii \texttt{Cooking and Recipes} vyhodnotíme rovněž v kontextu Spojených Států Amerických, které mají oproti Velké Británii větší zastoupení z~pohledu počtu uživatelů.
+V~této sekci projdeme konkrétní příklady úspěšných webových aplikací z~domény vyhledávání receptů a~uvedeme, v~čem se od nich plánujeme odlišit a~které rozšiřující funkce naše aplikace nabídne. Stránek v~oblasti gastronomie a~přípravy pokrmů existuje velké množství, vybereme tedy podmnožinu těch nejznámějších na základě jejich pozice ve vyhledávaných výsledcích. Pro přibližnou analýzu návštěvnosti využijeme kombinaci dotazu \texttt{recipes by ingredients} ve vyhledávači Google, dále položíme stejný dotaz platformě Spyfu\footnote{https://www.spyfu.com/} a nakonec zkontrolujeme kategorii \texttt{Cooking and Recipes} na stránce Similarweb\footnote{https://www.similarweb.com/}. Vzhledem k~anglické lokalizaci naší aplikace si prohlédneme výsledky na Google přes IP adresu amerického původu a~kategorii \texttt{Cooking and Recipes} vyhodnotíme rovněž v kontextu Spojených Států Amerických, které mají oproti Velké Británii větší zastoupení z~pohledu počtu uživatelů.
 
 Dle výše definované metriky jsou v~době psaní této práce na předních příčkách následující aplikace pro vyhledávání receptů dle ingrediencí: SuperCook, Allrecipes, MyFridgeFood, Taste of Home a~Recipeland. Z~obecné domény receptů pak vysoké umístění mají ještě stránky Simply~Recipes, Food~Network, The~Spruce~Eats nebo i~Food.com --- stránka zmíněná v~kapitole o~dostupných datových sadách.
 
