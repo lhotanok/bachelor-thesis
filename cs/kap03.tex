@@ -41,7 +41,7 @@ Všechny skripty pro přípravu dat z~Food.com jsou soustředěny v~adresáři \
 
 Pokud bychom adresář s~Apify actorem například naklonovali ze vzdáleného adresáře na platformě GitHub, stačilo by jej inicializovat příkazem \texttt{apify\,init}. Zároveň se jedná o~standardní Node.js projekt, pro instalaci potřebných knihoven tedy musíme spustit příkaz \texttt{npm\,install} nebo ekvivalentní \texttt{yarn\,install}. Po inicializaci se vytvoří důležitý adresář \texttt{apify\underline{{ }}storage} s~podadresáři \texttt{datasets} a~\texttt{key\underline{{ }}value\underline{{ }}stores}.
 
-Do adresáře \texttt{datasets} se typicky ukládají JSON soubory s~jednotlivými položkami datasetu, v~našem případě recepty. Na cloudové platformě Apify se pak tyto soubory sloučí do společného datasetu, který lze stáhnout v~řadě různých formátů, z~nichž nejčastěji využívané jsou formáty JSON a~CSV. Naše řešení bude ale určeno pouze pro lokální vývoj, pro zjednodušení tedy budeme výsledky ukládat přímo sloučené do adresáře \texttt{key\underline{{ }}value\underline{{ }}stores} pod klíčem \texttt{RECIPES}. Zároveň zde pod klíčem \texttt{INPUT} najdeme další důležitý soubor se vstupem pro actora. Ten bude obsahovat objekt s~jedinou položkou \texttt{startUrls} v~následujícím formátu:
+Do adresáře \texttt{datasets} se typicky ukládají JSON soubory s~jednotlivými položkami datasetu, v~našem případě recepty. Na cloudové platformě Apify se pak tyto soubory sloučí do společného datasetu, který lze stáhnout v~řadě různých formátů, z~nichž nejčastěji využívané jsou formáty JSON a~CSV. Naše řešení bude ale určeno pouze pro lokální vývoj, pro zjednodušení tedy budeme výsledky ukládat přímo sloučené do adresáře \texttt{key\underline{{ }}value\underline{{ }}stores/default} pod klíčem \texttt{RECIPES}. Zároveň zde pod klíčem \texttt{INPUT} najdeme další důležitý soubor se vstupem pro actora. Ten bude obsahovat objekt s~jedinou položkou \texttt{startUrls} v~následujícím formátu:
 
 \begin{code}
 {
@@ -57,13 +57,13 @@ Do adresáře \texttt{datasets} se typicky ukládají JSON soubory s~jednotlivý
 \end{code}
 %$
 
-Vstup bude vygenerován a~uložen do \texttt{key\underline{{ }}value\underline{{ }}stores/INPUT.json} pomocí skriptu \texttt{recipe-urls-generator.js} z~adresáře \texttt{foodcom}, který URL adresy složí z~identifikátorů receptů. Před spuštěním tohoto skriptu je potřeba mít staženy soubory \texttt{recipes/RAW\underline{{ }}recipes.csv} a~\texttt{recipes/PP\underline{{ }}recipes.csv} z~datasetu Food.com Recipes and~Interactions\footnote{https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions} a~dokončen \texttt{recipes-preprocessing.js}. Přes proměnnou \texttt{RECIPES\underline{{ }}TO\underline{{ }}EXTRACT} uvnitř \texttt{constants.js} lze omezit počet receptů, které se mají extrahovat.
+Vstup bude vygenerován do \texttt{key\underline{{ }}value\underline{{ }}stores/default/INPUT.json} pomocí skriptu \texttt{recipe-urls-generator.js} z~adresáře \texttt{foodcom}, který URL adresy složí z~identifikátorů receptů. Před spuštěním tohoto skriptu je potřeba mít staženy soubory \texttt{recipes/RAW\underline{{ }}recipes.csv} a~\texttt{recipes/PP\underline{{ }}recipes.csv} z~datasetu Food.com Recipes and~Interactions\footnote{https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions} a~dokončen \texttt{recipes-preprocessing.js}. Přes proměnnou \texttt{RECIPES\underline{{ }}TO\underline{{ }}EXTRACT} uvnitř \texttt{constants.js} lze omezit počet receptů, které se mají extrahovat.
 
 Kód Apify actora je typicky soustředěn v~adresáři \texttt{src}. Klíčové jsou soubory \texttt{main.js} s~inicializací (v našem případě třídy \texttt{CheerioCrawler}) a~\texttt{routes.js} s~funkcemi pro zpracování různých typů obrazovek. Obvykle je potřeba definovat chování pro stránku typu \texttt{LIST}, ze které jsou získány odkazy na detaily nalezených výsledků, a~pro stránku \texttt{DETAIL}, kde jsou extrahována a~uložena data jednotlivých výsledků. Naše řešení pro aplikaci Food.com zpracovává pouze detaily receptů, které obdrží na vstupu. Stačí tedy implementovat funkci \texttt{handleDetail}, která pomocí CSS selektoru \texttt{script[type="application/ld+json"]} zacílí JSON-LD data z~hlavičky HTML dokumentu, vybranou část z~nich převede do strukturované podoby a~nově zkonstruovaný recept přidá do souboru \texttt{RECIPES.json}.
 
 Konstruktor třídy \texttt{CheerioCrawler} přijímá $1$ parametr s~možnostmi konfigurace. Prostřednictvím položky \texttt{proxyConfiguration} lze volitelně aktivovat rotování IP adres, které chrání naši vlastní IP adresu před dočasným či dokonce trvalým zablokováním a~zlepšuje poměr úspěšných požadavků. Vzhledem k~obecně nižší míře blokování ze strany aplikací s~recepty by využití proxy nemělo být nutné, je ale vhodné. Počet současně odesílaných požadavků omezíme na doporučenou hranici $50$ požadavků, abychom zamezili přetížení zpracovávané webové aplikace. Actora spustíme příkazem \texttt{apify\,run\,-p}. Příznak \texttt{-p} je zkratkou pro \emph{purge} a~zajišťuje korektní vyčištění předchozího stavu.
 
-\subsubsection{Sloučení dat}
+\subsubsection{Propojení dat}
 
 V~první fázi potřebujeme extrahovat ingredience, které jsou poskytnuty v~souboru \texttt{ingr\underline{{ }}map.pkl}. Pro zpracování formátu \emph{pkl} potřebujeme knihovnu pickle určenou k~serializaci a~de-serializaci objektů jazyka Python \citep{pickle}. Je tedy potřeba aktivovat prostředí pro vývoj v~jazyce Python s~nainstalovaným balíčkem pickle (typicky virtuální prostředí označované jako \emph{venv}). Soubor převedeme skriptem \texttt{pkl-ingredients-extractor.py} do formátu CSV, kde nalezneme informace v~následujícím formátu:
 
@@ -115,15 +115,20 @@ Formát odpovědi na tento požadavek je následující:
 }
 \end{code}
 %$
-Ze znalosti hodnoty {totalResults} a počtu výsledků na 1 stránce bychom měli být schopni předem určit, kolik stran budeme procházet. V době psaní této práce je inzerovaný počet výsledků uložený v položce \texttt{totalResults} roven $55\,680$. Poslední stranou při číslování od $1$~by tedy měla být strana $2\,320$. Při manuální kontrole lze ale zjistit, že poslední výsledky jsou na straně $417$, kde je zároveň uloženo \texttt{hasNext:\,false}. Lze tedy předpokládat, že pokud na Allrecipes zadáme prázdnou množinu filtrů a prolistujeme všechny výsledky, neuvidíme inzerovaných $55\,680$ výsledků, ale pouze $(416 \cdot 24) + 16 = 10\,000$ receptů. Při podrobnějším zkoumání vypozorujeme, že aplikace Allrecipes používá maximální limit $10\,000$ výsledků i při zadání filtrů (například po přidání soli jakožto vyhledávací ingredience se celkový počet výsledků snížil na necelých $40\,000$ a poslední stranou výsledků je opět strana $417$. Pokud se tedy nespokojíme s $10\,000$ recepty, budeme muset přistoupit na řešení procházející jednotlivé kategorie receptů.
+
+Ze znalosti hodnoty {totalResults} a počtu výsledků na 1 stránce bychom měli být schopni předem určit, kolik stran budeme procházet. V době psaní této práce je inzerovaný počet výsledků uložený v položce \texttt{totalResults} roven $55\,680$. Poslední stranou při číslování od $1$~by tedy měla být strana $2\,320$. Při manuální kontrole lze ale zjistit, že poslední výsledky jsou na straně $417$, kde je zároveň uloženo \texttt{hasNext:\,false}.
+
+Lze tedy předpokládat, že pokud na Allrecipes zadáme prázdnou množinu filtrů a prolistujeme všechny výsledky, neuvidíme inzerovaných $55\,680$ výsledků, ale pouze $(416 \cdot 24) + 16 = 10\,000$ receptů. Při podrobnějším zkoumání vypozorujeme, že aplikace Allrecipes používá maximální limit $10\,000$ výsledků i při zadání filtrů (například po přidání soli jakožto vyhledávací ingredience se celkový počet výsledků snížil na necelých $40\,000$ a poslední stranou výsledků je opět strana $417$. Pokud se tedy nespokojíme s $10\,000$ recepty, budeme muset přistoupit na řešení procházející jednotlivé kategorie receptů.
 
 \paragraph{Kategorie receptů}\mbox{}\\
 
-Odkazy na kategorie je možné získat ze stránky s relativní adresou \texttt{/recipes} přes CSS selektor třídy \texttt{recipeCarousel\underline{{ }{ }}link}. Pro sestavení adresy následující stránky dané kategorie stačí přidat query parametr \texttt{page}. Příklad relativní adresy pro $10$. stránku kategorie hlavních chodů: \texttt{/recipes/80/main-dish/?page=10}. Tento formát lze objevit při prozkoumání atributů tlačítka \texttt{Load\,more} na domovské stránce kategorie. Zda jsme již dorazili na poslední stranu poznáme podle obsahu elementu \texttt{h1}, ve kterém se na stránce bez receptů objeví hlášení \texttt{Page\,Not\,Found}.
+Odkazy na kategorie je možné získat ze stránky s relativní adresou \texttt{/recipes} přes CSS selektor třídy \texttt{recipeCarousel\underline{{ }{ }}link}. Kategorie pak můžeme procházet po stranách, stačí přidat query parametr \texttt{page}. Příklad relativní adresy pro $10$. stránku kategorie hlavních chodů: \texttt{/recipes/80/main-dish/?page=10}. Tento formát lze objevit při prozkoumání atributů tlačítka \texttt{Load\,more} na domovské stránce kategorie. Zda jsme již dorazili na poslední stranu poznáme podle obsahu elementu \texttt{h1}, ve kterém se na stránce bez receptů objeví hlášení \texttt{Page\,Not\,Found}.
 
-Stránky kategorií budou v kontextu Apify actora odpovídat stránkám typu \texttt{LIST}. V rámci zpracování stránky kategorie musíme do fronty požadavků zařadit odkaz na další stranu (pokud již nejsme na poslední straně bez výsledků) a zároveň URL adresy detailů receptů. Fronta je oboustranná, můžeme tedy adresy s detaily receptů zařadit na začátek, aby se zpracovaly přednostně a měli jsme dříve k dispozici výsledky, neboť se průběžně ukládají do souboru \texttt{key\underline{{ }}value\underline{{ }}stores/RECIPES.json}.
+Stránky kategorií budou v kontextu Apify actora odpovídat stránkám typu \texttt{LIST}. V rámci zpracování stránky kategorie musíme do fronty požadavků zařadit odkaz na další stranu (pokud již nejsme na poslední straně bez výsledků) a zároveň URL adresy detailů receptů. Fronta je oboustranná, můžeme tedy adresy s detaily receptů zařadit na začátek, aby se zpracovaly přednostně a měli jsme dříve k dispozici výsledky, neboť se průběžně ukládají do souboru \texttt{key\underline{{ }}value\underline{{ }}stores/default/RECIPES.json}.
 
-\subsubsection{Sloučení dat}
+Během extrakce dat ze stránek detailů receptů se musíme vypořádat s několika problémy. Aplikace Allrecipes není zcela konzistentní v mapování ingrediencí na atributy v HTML a střídá $2$ atributy pro jméno ingredience, které vidí uživatel, a název ingredience pro vyhledávání. Musíme tedy explicitně zkontrolovat, že pod položkou \texttt{text} ukládáme skutečně text, který je zobrazen bezprostředně po jednotce měření. Také narazíme na část receptů bez uvedených nutričních hodnot. Tyto recepty přeskočíme, neboť je pro nás informace o nutričních hodnotách důležitá.
+
+\subsubsection{Propojení dat}
 
 U datasetu z Allrecipes máme zjednodušenou práci, neboť strukturované ingredience máme již k dispozici z fáze extrakce receptů. Stačí nám tedy získat unikátní jména ingrediencí z extrahovaných receptů, z těchto ingrediencí vytvořit RDF dataset pro linkování s grafy DBpedia a Wikidata a extrahované informace propojit s dokumenty receptů. Postup je analogický jako s unikátními ingrediencemi z Food.com datasetu. 
 
@@ -134,9 +139,21 @@ uuid.v5(name, NAMESPACE_UUID)}
 %$
 Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se na stejné uuid a vyhneme se duplicitě. Jména pro tento účel vždy převedeme do lowercase formátu.
 
+\subsection{Linkování datasetů}
+
+Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou u Food.com i Allrecipes v podadresářích \texttt{rdf-data}.
+
 \subsection{DBpedia}
 
+Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v adresáři \texttt{data/resources/DBpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale v~závislosti na počtu nalezených spojení mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
+
+Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých formátů. Pro naše účely bude nejpraktičtější formát JSON-LD, jehož obsah využijeme v~hlavičkách HTML dokumentů. Se SPARQL endpointem lze komunikovat přes grafické rozhraní ve webovém prohlížeči nebo prostřednictvím HTTP GET požadavků. Pro snadnější automatizaci procesu extrakce využijeme druhou možnost, kde obsah dotazu předáme na místě query parametru s~názvem \texttt{query}.
+
 \subsection{Wikidata}
+
+Proces extrakce dat z grafu Wikidata bude probíhat analogicky k~postupu pro DBpedia z předchozího odstavce. I~zde využijeme HTTP GET požadavky na SPARQL endpoint, kde prostřednictvím query parametrů předáme obsah dotazu a~požadovaný formát výsledku. Projekt Wikidata neposkytuje reprezentaci JSON-LD, vystačíme si ale s~běžným JSON formátem, který lze vyžádat přes hodnotu query parametru \texttt{format} nastavenou na \texttt{json}. Z~této reprezentace pak sami vytvoříme odpovídající JSON-LD formát, který je vhodný pro strukturovaná data v~hlavičce HTML dokumentu.
+
+Související soubory jsou uloženy v destinaci: \texttt{data/resources/Wikidata}. Obsažený skript je opět volán pouze externě na základě extrahovaných ingrediencí z datasetů Food.com a Allrecipes. 
 
 \section{Databáze Apache CouchDB}
 
