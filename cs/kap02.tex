@@ -96,7 +96,16 @@ Z atributů elementu \texttt{input} dokážeme rozpoznat název, množství i~je
 
 \paragraph{Znalostní grafy}\mbox{}\\
 
-V~první fázi extrakce dat ze znalostních grafů, ať už DBpedia či Wikidata, potřebujeme identifikovat entity ingrediencí, které dokážeme namapovat na jména surovin z~jednotlivých receptů. Pro každou entitu ingredience vyjádřenou pomocí IRI pak extrahujeme vybrané informace. U grafu DBpedia budeme cílit na jméno, popis, obrázek, kategorie a~místo původu. Z~nutričních hodnot se zaměříme na energii v~kaloriích nebo kilojoulech, dále na obsah tuku, sacharidů, bílkovin, vlákniny, cholesterolu a~cukru. Aktuálně se zabýváme pouze anglickou lokalizací aplikace, všechna textová data tedy omezíme na anglické výsledky. Jedinou povinnou informací bude název (label) ingredience, všechna ostatní data budou nepovinná, neboť se formát i~množství dat napříč ingrediencemi výrazně liší.
+V~první fázi extrakce dat ze znalostních grafů, ať už DBpedia či Wikidata, potřebujeme identifikovat entity ingrediencí, které dokážeme namapovat na jména surovin z~jednotlivých receptů. Pro každou entitu ingredience vyjádřenou pomocí IRI pak extrahujeme vybrané informace. U grafu DBpedia budeme cílit především na:
+\begin{itemize}
+    \item jméno
+    \item popis
+    \item obrázek
+    \item kategorie
+    \item místo původu
+\end{itemize}
+
+Z~nutričních hodnot se zaměříme na energii v~kaloriích nebo kilojoulech, dále na obsah tuku, sacharidů, bílkovin, vlákniny, cholesterolu a~cukru. Aktuálně se zabýváme pouze anglickou lokalizací aplikace, všechna textová data tedy omezíme na anglické výsledky. Jedinou povinnou informací bude název (label) ingredience, všechna ostatní data budou nepovinná, neboť se formát i~množství dat napříč ingrediencemi výrazně liší.
 
 \subsubsection{Čištění dat}
 
@@ -223,7 +232,7 @@ Kořenem našeho stromu komponent bude \texttt{BrowserRouter}, komponenta pochá
 \end{code}
 %$
 
-Části adres označené jako \texttt{:recipeId} a~\texttt{:ingredientId} značí proměnné, za které budou dosazeny konkrétní hodnoty přístupné skrze funkci \texttt{useParams} kni\-hovny React Router. Přidáme ještě dodatečnou komponentu \texttt{Route} pro zpracování domovské stránky, tedy s~cestou: \texttt{/}. Tato komponenta bude v~pilotní verzi naší aplikace pouze přesměrovávat na adresu \texttt{/recipes}. Grafické znázornění základní komponentové struktury aplikace viz schéma \ref{obr02:react-app}.
+Části adres označené jako \texttt{:recipeId} a~\texttt{:ingredientId} značí proměnné, za které budou dosazeny identifikátory konkrétních receptů či ingrediencí. Přidáme ještě dodatečnou komponentu \texttt{Route} pro zpracování domovské stránky, tedy s~cestou: \texttt{/}. Tato komponenta bude v~pilotní verzi naší aplikace pouze přesměrovávat na adresu \texttt{/recipes}. Grafické znázornění základní komponentové struktury aplikace viz schéma \ref{obr02:react-app}.
 
 \begin{figure}[h!]\centering
 \includegraphics[width=140mm]{../img/react-app}
@@ -253,7 +262,7 @@ Při návrhu architektury ukládání a~dotazování se nad daty receptů a~ingr
 
 \subsubsection{Projekt Linked Recipes}
 
-Výše uvedený přístup byl otestován v~rámci souvisejícího projektu Linked \,Recipes\footnote{https://github.com/lhotanok/LinkedRecipes}, který vznikl jako semestrální práce v~předmětu Data na Webu vedeném RNDr.~Jakubem~Klímkem,~Ph.D. v~roce $2022$. Součástí projektu bylo získání dat s~recepty ze $3$~různých zdrojů, dále jejich převedení do RDF formátu v~libovolné serializaci, nalezení linků mezi datasety navzájem i~s~externími grafy a~na závěr vytvoření jednoduché aplikace, která všechna data propojila a~umožnila nad nimi spouštět SPARQL dotazy. Jako statické zdroje dat byly vybrány datasety Food.com Recipes and~Interactions a BBC Recipes. Ty byly obohaceny o~dataset vygenerovaný z~webové aplikace Allrecipes a~jako zástupci externích grafů byly zvoleny projekty DBpedia a~Wikidata. Je zde tedy velký překryv s~datovými sadami využívanými v~naší aplikaci pro vyhledávání receptů.
+Výše uvedený přístup byl otestován v~rámci souvisejícího projektu Linked \,Recipes\footnote{https://github.com/lhotanok/LinkedRecipes}, který vznikl jako semestrální práce v~předmětu Data na Webu vedeném RNDr.~Jakubem~Klímkem,~Ph.D. v~roce $2022$. Součástí projektu bylo získání dat s~recepty ze $3$~různých zdrojů, dále jejich převedení do RDF formátu v~libovolné serializaci, nalezení linků mezi datasety navzájem i~s~externími grafy a~na závěr vytvoření jednoduché aplikace, která všechna data propojila a~umožnila nad nimi spouštět SPARQL dotazy. Jako statické zdroje dat byly vybrány datasety Food.com Recipes and~Interactions a~BBC Recipes. Ty byly obohaceny o~dataset vygenerovaný z~webové aplikace Allrecipes a~jako zástupci externích grafů byly zvoleny projekty DBpedia a~Wikidata. Je zde tedy velký překryv s~datovými sadami využívanými v~naší aplikaci pro vyhledávání receptů.
 
 Aplikace Linked Recipes je napsána v~jazyce Java a~pro obsluhu HTTP požadavků využívá koncept tzv.~servletů, které generují odpovídající HTML dokumenty, často na základě komunikace s~databází. Aplikace používá RDF triplestore jako úložiště dat, konkrétně implementaci frameworku Eclipse RDF4J. Data ve formátu RDF jsou při spuštění aplikace nahrána do paměti prostřednictvím úložiště \emph{MemoryStore}, které je dle dokumentace třídy vhodné pro dataset s~méně než $100\,000$ tvrzeními. Alternativně lze použít úložiště provázané se SPARQL endpointem, který přijímá dotazy přes HTTP.
 

@@ -141,19 +141,51 @@ Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se n
 
 \subsection{Linkování datasetů}
 
-Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou u Food.com i Allrecipes v podadresářích \texttt{rdf-data}.
+Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou u Food.com i Allrecipes v adresáři \texttt{rdf-data}.
 
 \subsection{DBpedia}
 
-Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v adresáři \texttt{data/resources/DBpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale v~závislosti na počtu nalezených spojení mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
+Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v adresáři \texttt{data/resources/dbpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale v~závislosti na počtu nalezených spojení mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
 
-Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých formátů. Pro naše účely bude nejpraktičtější formát JSON-LD, jehož obsah využijeme v~hlavičkách HTML dokumentů. Se SPARQL endpointem lze komunikovat přes grafické rozhraní ve webovém prohlížeči nebo prostřednictvím HTTP GET požadavků. Pro snadnější automatizaci procesu extrakce využijeme druhou možnost, kde obsah dotazu předáme na místě query parametru s~názvem \texttt{query}.
+Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých formátů. Pro naše účely bude nejpraktičtější formát JSON-LD, jehož obsah využijeme v~hlavičkách HTML dokumentů. Se SPARQL endpointem lze komunikovat přes grafické rozhraní ve webovém prohlížeči nebo prostřednictvím HTTP GET požadavků. Pro snadnější automatizaci procesu extrakce využijeme druhou možnost, kde obsah dotazu předáme na místě query parametru s~názvem \texttt{query}. Šablona dotazu konstruujícího RDF graf je umístěná v souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou vloženy pomocí regulárních výrazů do množiny tzv. \texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
+
+\begin{code}
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+
+CONSTRUCT {
+    ?ingredient rdfs:comment ?comment ;
+                rdfs:label ?label ;
+                dbo:thumbnail ?thumbnail ;
+}
+WHERE {
+    VALUES ?ingredient { 
+        ##INGREDIENTS## 
+        # Replace this section with ingredient resources such as:
+        # <http://dbpedia.org/resource/Avocado>
+        ##INGREDIENTS##
+    }
+
+    ?ingredient rdfs:label ?label .
+    FILTER (LANG(?label) = "en")
+    
+    OPTIONAL {
+        ?ingredient rdfs:comment ?comment .
+        FILTER (LANG(?comment) = "en")
+    }
+
+    # Image with description(s)
+    OPTIONAL {?ingredient dbo:thumbnail ?thumbnail .}
+}
+\end{code}
+%$
 
 \subsection{Wikidata}
 
 Proces extrakce dat z grafu Wikidata bude probíhat analogicky k~postupu pro DBpedia z předchozího odstavce. I~zde využijeme HTTP GET požadavky na SPARQL endpoint, kde prostřednictvím query parametrů předáme obsah dotazu a~požadovaný formát výsledku. Projekt Wikidata neposkytuje reprezentaci JSON-LD, vystačíme si ale s~běžným JSON formátem, který lze vyžádat přes hodnotu query parametru \texttt{format} nastavenou na \texttt{json}. Z~této reprezentace pak sami vytvoříme odpovídající JSON-LD formát, který je vhodný pro strukturovaná data v~hlavičce HTML dokumentu.
 
-Související soubory jsou uloženy v destinaci: \texttt{data/resources/Wikidata}. Obsažený skript je opět volán pouze externě na základě extrahovaných ingrediencí z datasetů Food.com a Allrecipes. 
+Související soubory jsou uloženy v destinaci: \texttt{data/resources/wikidata}. Obsažený skript je opět volán pouze externě na základě extrahovaných ingrediencí z datasetů Food.com a Allrecipes. 
 
 \section{Databáze Apache CouchDB}
 
@@ -166,15 +198,78 @@ Související soubory jsou uloženy v destinaci: \texttt{data/resources/Wikidata
 
 \section{Single-page aplikace}
 
-V návrhu architektury klientské části aplikace jsme rozhodli, že naše řešení sestrojíme s využitím funkcionálních komponent a speciálních funkcí zvaných Hooks. Nejprve si tedy představíme tyto klíčové stavební prvky moderní aplikace založené na knihovně React. Následně se zaměříme na jejich zapojení v rámci aplikace s recepty.
+V návrhu architektury klientské části aplikace jsme rozhodli, že naše řešení sestrojíme s využitím knihovny React a jejích funkcionálních komponent v kombinaci se speciálními funkcemi zvanými Hooks. Nejprve si tedy představíme tyto klíčové stavební prvky. Následně se zaměříme na jejich zapojení v rámci aplikace s recepty.
 
 \subsection{Funkcionální komponenta}
 
-Jedná se o~jednoduchou funkci přijímající tzv.~\emph{props} na místě parametrů a~s~návratovým typem základního elementu knihovny React. Tyto elementy mohou být zapsány pomocí \emph{JSX}, což je syntaktické rozšíření jazyka JavaScript. Připomíná šablonovací jazyk, neboť kombinuje syntaxi jazyka HTML s~kódem psaným v~JavaScriptu. React zajišťuje renderování JSX elementů do HTML dokumentu prostřednictvím rozhraní DOM \citep{jsx-intro}. Příklad jednoduchého JSX elementu, který se v~HTML vygeneruje jako tag \texttt{h1} s~textem \texttt{Headline}:
+Jedná se o~jednoduchou funkci přijímající tzv.~\emph{props} na místě parametru a~s~návratovým typem základního elementu knihovny React, tedy \texttt{JSX.Element}. Tyto elementy mohou být zapsány pomocí \emph{JSX}, což je syntaktické rozšíření jazyka JavaScript. Připomíná šablonovací jazyk, neboť kombinuje syntaxi jazyka HTML s~kódem psaným v~JavaScriptu. React zajišťuje renderování JSX elementů do HTML dokumentu prostřednictvím rozhraní DOM \citep{jsx-intro}. Příklad jednoduchého JSX elementu, který se do HTML vygeneruje jako tag \texttt{h1} s~textem \texttt{Headline}:
 
 \begin{code}
 const element = <h1>Headline</h1>;
 \end{code}
 %$
 
-Ekvivalentem pro vývoj v~jazyce TypeScript je formát \emph{TSX}, který využijeme v~naší aplikaci. Rozlišujeme čistě prezentační komponenty, které pouze renderují data přijatá přes parametr \texttt{props}, a~stavové komponenty způsobující vedlejší efekty v~podobě změny stavu aplikace. Dle konvence má každá komponenta, byť jednoduchá, nárok na vlastní soubor.
+Ekvivalentem pro vývoj v~jazyce TypeScript je formát \emph{TSX}, který využijeme v~naší aplikaci. Rozlišujeme čistě prezentační komponenty, které pouze renderují data přijatá přes parametr \texttt{props}, a~stavové komponenty způsobující vedlejší efekty v~podobě změny stavu aplikace. Dle konvence má každá komponenta, byť jednoduchá, nárok na vlastní soubor, který snadno poznáme podle koncovky \texttt{jsx}, respektive \texttt{tsx} při vývoji v TypeScriptu.
+
+\subsection{Hooks}
+
+Koncept Hooks byl poprvé uveden ve verzi React $16.8$. Jedná se o speciální funkce, které umožňují spravovat stav, životní cyklus a další vlastnosti funkcionálních komponent bez využití tříd. Pomáhají dělit komponenty do menších funkcí na základě souvisejících částí kódu, což v komponentách na bázi tříd často není snadné zařídit. Například uvnitř vestavěné funkce \texttt{componentDidUpdate} se mohou potkat zcela nesouvisející části kódu, které je potřeba vykonat v případě aktualizace komponenty. Aplikační logiku soustředěnou uvnitř Hooks lze využít ve více komponentách a také je snadné kód testovat nezávisle na komponentě \citep{react-hooks}.
+
+Pro pojmenování Hooks existuje striktní jmenná konvence --- všechny Hooks musejí začínat slovem \texttt{use}. Příklady nejdůležitějších Hooks poskytovaných knihovnou React jsou \texttt{useState} a \texttt{useEffect} vztahující se po řadě ke stavu a životnímu cyklu komponenty. V rámci jedné komponenty je lze podle potřeby využít libovolně mnohokrát. Také je možné vytvářet vlastní Hooks. Stejně jako komponenty se ukládají do souborů s koncovkou \texttt{tsx} a React je správně identifikuje jako Hooks právě na základě jména s počátečním slovem \texttt{use}. Kromě správného pojmenování musí Hooks dodržovat následující omezení \citep{react-hooks-w3c}:
+\begin{itemize}
+    \item Hooks mohou být použity pouze uvnitř funkcionálních komponent. V běžných funkcích ani komponentách implementovaných jako třída nebudou fungovat.
+    \item Hooks nelze volat ve vnořených funkcích komponenty.
+    \item Hooks nemohou ukládat různý výsledek na základě podmínky.
+\end{itemize}
+ 
+\subsection{Struktura aplikace}
+
+Knihovnu React lze s aplikací integrovat různými způsoby. Nejjednodušším řešením je přidání \texttt{<script>} tagu do HTML dokumentu, volitelně s dalším tagem \texttt{<script>} pro podporu JSX syntaxe. Tento způsob je vhodný pro aplikace, které primárně nejsou navrženy jako single-page a potřebují prvky knihovny React využít pouze pro vybrané dynamické komponenty. Náš projekt má být naopak na principu single-page aplikace založen, využijeme tedy doporučené řešení v podobě prostředí Create React App\footnote{https://www.npmjs.com/package/create-react-app}. Adresářovou strukturu a konfiguraci projektu vytvoříme následujícím příkazem:
+\begin{code}
+npx create-react-app frontend
+\end{code}
+%$
+Aplikaci spustíme na výchozí adrese \texttt{localhost:3000} spuštěním příkazu \texttt{npm start} v kořenovém adresáři \texttt{frontend}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
+
+\subsubsection{Výchozí HTML dokument}
+
+V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index.html}. Ten nebude potřeba z naší strany příliš modifikovat, pouze přidáme odkaz na ikony z knihovny Material UI, abychom je mohli využívat v rámci aplikace a také nahradíme obsah tagu \texttt{<title>} názvem našeho projektu, tedy MeaLinker. V adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme logo vygenerované webovou aplikací Logo Maker\footnote{https://express.adobe.com/express-apps/logo-maker/} z dílny Adobe Express, které zadáme klíčové slovo \emph{Recipe}. Pokud bychom potřebovali banner včetně jména aplikace, přidali bychom do konfigurace generování loga ještě název \emph{MeaLinker}. Jako podklad použijeme ikonu\footnote{https://thenounproject.com/icon/search-food-2835433/} dohledatelnou pod frází \emph{search food}. Vygenerovaný výsledek je znázorněn obrázkem \ref{obr03:mealinker-logo}. Při návrhu barevného schématu aplikace se stejně jako u loga budeme držet červených odstínů, které doplníme o prvky zelené jakožto sekundární barvy palety.
+
+\begin{figure}[h!]\centering
+\includegraphics[width=40mm]{../img/mealinker-logo}
+\caption{Logo aplikace vygenerované pomocí nástroje Logo Maker.}
+\label{obr03:mealinker-logo}
+\end{figure}
+
+\subsubsection{Výchozí bod aplikace}
+
+V adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}, který zajišťuje renderování těchto elementů pomocí metody \texttt{render}. Volání metody \texttt{render} odpovídá architektuře znázorněné v předchozí kapitole, viz obrázek \ref{obr02:react-app}:
+\begin{code}
+const root = createRoot(
+    document.getElementById('root') as HTMLElement
+);
+
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+);
+\end{code}
+%$
+
+\subsubsection{Binární soubory}
+
+V adresáři \texttt{src/assets} soustředíme potřebné binární soubory. V současné verzi aplikace zde budou pouze obrázky, konkrétně ikony využívané napříč aplikací. Většinu získáme z kolekce volně dostupných ikon platformy Flaticon\footnote{https://www.flaticon.com/}. Je vyžadován odkaz na zdroj a tvůrce ikony, s čímž si poradíme zahrnutím odkazů uvnitř tagu \texttt{<footer>}.
+
+\subsubsection{Funkcionální komponenty}
+
+Adresář \texttt{src} kromě obsahuje také podadresáře \texttt{recipes} a \texttt{ingredients}. Oba mají podobnou strukturu a obsahují adresáře \texttt{pages}, \texttt{components} a texttt{types}. Adresář texttt{types} obsahuje definice typů entit, které jsou přijímány ze serverové části aplikace. Za povšimnutí stojí koncovka souborů typů, která je rozdílná od většiny ostatních souborů na frontendu, tedy texttt{ts} namísto texttt{tsx}. Jedná se totiž o běžné soubory jazyka TypeScript, nikoli o komponenty určené specificky pro knihovnu React psané syntaxí TSX. Jinak jednotlivé typy odpovídají definicím na backendu aplikace, nemusíme se jim tedy dále věnovat.
+
+\paragraph{Komponenty obrazovek}\mbox{}\\
+
+
+
+
+\paragraph{Stavební komponenty}\mbox{}\\
