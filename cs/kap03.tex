@@ -195,13 +195,17 @@ Pro uložení dat jsme vybrali dokumentový databázový systém CouchDB z důvo
 
 S~velikostí našeho projektu si můžeme dovolit při nahrávání nových dat nejprve stávající data odstranit a~poté je vložit do čisté databáze. Kdybychom totiž chtěli dokumenty aktualizovat, potřebovali bychom u~každého z~nich poskytnout aktuální verzi, což by pro přepsání celé databáze byl zbytečně komplikovaný postup. S~rostoucím počtem dokumentů bychom ale nejspíše museli přistoupit na aktualizaci dat namísto jejich odstraňování a~opětovného nahrávání, neboť již pro přidání kolekce o~velikosti $50\,000$ dokumentů se pohybujeme v~řádu delších minut.
 
-S knihovnou Nano pracujeme na 2 místech projektu. Poprvé v rámci přípravy a nahrání dat do CouchDB, podruhé na backendu aplikace pro získání uložených dokumentů na základě identifikátorů. Oba přístupy do databáze vyžadují přihlašovací heslo --- uložíme jej jako proměnnou prostředí, ke které se v kódu dostaneme přes rozhraní \texttt{process.env}. Instanci CouchDB spustíme na výchozím portu $5984$.
+S knihovnou Nano pracujeme na $2$ místech projektu. Poprvé v rámci přípravy a nahrání dat do CouchDB, podruhé na backendu aplikace pro získání uložených dokumentů na základě identifikátorů. Oba přístupy do databáze vyžadují přihlašovací heslo --- uložíme jej jako proměnnou prostředí, ke které se v kódu dostaneme přes rozhraní \texttt{process.env}. Instanci CouchDB spustíme na výchozím portu $5984$.
 
 \subsection{Vložení dokumentů}
 
 Nahrávání dokumentů zajišťuje skript \texttt{database-manager.mjs} umístěný v adresáři \texttt{data/database}. Před uložením dokumentů do databáze jsou všechny řetězce obsažené v jednotlivých objektech receptů a ingrediencí dekódovány pomocí funkcí \texttt{decode} a \texttt{unescape}.
 
 \subsection{Přístup k dokumentům}
+
+Kód pro hledání dokumentů receptů a ingrediencí dle zadaného id je soustředěn v adresáři \texttt{app/backend/src/couchdb}. Dokumenty jsou rozděleny do databází, respektive kolekcí \texttt{recipes} a \texttt{ingredients}. Adresář \texttt{types} obsahuje definice typů, které potřebujeme, pokud chceme pracovat s typovou podporou jazyka TypeScript. Schéma dokumentů není pevně definováno, takže typy slouží spíše pro naši kontrolu a případné logování. A to zejména na backendu aplikace, kde s jednotlivými položkami objektů většinou nepotřebujeme dále pracovat a pouze celý objekt odesíláme na frontend. Stejnou kolekci typů definujeme nezávisle na backendu i frontendu, neboť by jejich adresáře teoreticky mohly být uloženy na různých zařízeních a tudíž  by na sobě neměly být závislé. Pokud by nám vzájemná závislost nevadila, stačilo by vytvořit typy pouze jednou v kořenovém adresáři \texttt{app}, do kterého mají přístup obě části aplikace. Aktuálně se v kontextu databáze jedná o typy \texttt{FullRecipe}, \texttt{FullIngredient}, \texttt{RecipeJsonld} a řadu vnořených typů, jako například \texttt{RecipeIngredient}, \texttt{RecipeNutrition}, \texttt{PrepTime} nebo \texttt{Author}. 
+
+Spojení s databází inicializujeme pouze jednou, což zaručíme zapojením třídy \texttt{NanoDbFactory} a konceptu návrhového vzoru singleton. Odkaz na spojení s databází si vždy vyžádáme od \texttt{NanoDbFactory}, která si drží statický slovník kolekcí dle jména, v našem případě \texttt{recipes} a \texttt{ingredients}. Pokud už má pro dané jméno spojení navázáno, nevytváří jej znova a vrátí odkaz na hodnotu ze slovníku. Se třídou \texttt{NanoDbFactory} komunikují modely \texttt{CouchDbRecipesModel} pro dokumenty receptů a \texttt{CouchDbIngredientsModel} pro dokumenty ingrediencí, které si o spojení s databází zažádají v konstruktoru. Pro každý zpracovávaný požadavek ze strany klienta se tak vytváří nová instance modelu, ale nikoli nové spojení s databází.
 
 \section{Vyhledávání pomocí Apache Solr}
 
@@ -243,7 +247,7 @@ npx create-react-app frontend
 \end{code}
 %$
 
-Aplikaci spustíme z kořenového adresáře \texttt{frontend} příkazem \texttt{npm\,start}. Výchozí adresou je \texttt{localhost:3000}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
+Aplikaci spustíme z kořenového adresáře \texttt{app/frontend} příkazem \texttt{npm\,start}. Výchozí adresou je \texttt{localhost:3000}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
 
 \subsubsection{HTML dokument single-page aplikace}
 
