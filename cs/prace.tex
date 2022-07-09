@@ -94,15 +94,15 @@
 % Nepovinné poděkování (vedoucímu práce, konzultantovi, tomu, kdo
 % zapůjčil software, literaturu apod.)
 \def\Podekovani{%
-Poděkování.
+Děkuji svému vedoucímu doc. Mgr. Martinovi Nečaskému, Ph.D. za vedení této práce, zejména za cenné rady v oblasti návrhu architektury a přístupu k implementaci, které uplatním i v nadcházejících projektech.
 }
 
 % Abstrakt (doporučený rozsah cca 80-200 slov; nejedná se o zadání práce)
 \def\Abstrakt{%
-Cílem této práce je vyvinout webovou aplikaci pro vyhledávání receptů založenou na agregaci datových sad z existujících webových stránek s recepty a jejich obohacení o data ze znalostních grafů. Znalostní grafy byly zastoupeny projekty DBpedia a Wikidata, z nichž byla získána data o ingrediencích a kategoriích jednotlivých receptů. Data byla extrahována s pomocí knihovny Apify a v dokumentovém modelu uložena do databázového systému Apache CouchDB. Aplikace uživateli poskytuje různé možnosti filtrování výsledků včetně fasetového vyhledávání, k čemuž využívá platformu Apache Solr. Zaměřuje se zejména na vyhledávání dle ingrediencí. Jedná se o tzv. single-page aplikaci implementovanou pomocí JavaScriptové knihovny React pro uživatelské rozhraní a frameworku Express.js na straně serveru. Obě části aplikace jsou psány staticky typovaným jazykem TypeScript a komunikují spolu prostřednictvím REST API.
+Cílem této práce je vyvinout webovou aplikaci pro vyhledávání receptů založenou na agregaci datových sad z~existujících webových stránek s~recepty a~jejich obohacení o~data ze znalostních grafů. Znalostní grafy byly zastoupeny projekty DBpedia a Wikidata, z~nichž byla získána rozšiřující data o~ingrediencích. Data byla extrahována s~pomocí knihovny Apify pro web scraping a~v~dokumentovém modelu uložena do databázového systému Apache CouchDB. Aplikace uživateli poskytuje různé možnosti filtrování výsledků včetně fasetového vyhledávání, k~čemuž využívá platformu Apache Solr. Zaměřuje se zejména na vyhledávání dle ingrediencí. Jedná se o~tzv.~single-page aplikaci implementovanou pomocí knihovny React.js pro uživatelské rozhraní a~frameworku Express.js na straně serveru. Obě části aplikace jsou psány staticky typovaným jazykem TypeScript a~komunikují spolu prostřednictvím REST~API.
 }
 \def\AbstraktEN{%
-Abstract.
+This thesis aims to develop a web application for searching recipes. The search for recipes is based on aggregating datasets from the existing recipe websites and extending the data using knowledge graphs. Knowledge graphs were represented by DBpedia and Wikidata projects. These were used to gather data about ingredients. Data were extracted using the Apify web scraping library and stored in the database system Apache CouchDB using the document model. The application provides the user with different options for filtering results, including faceted search. Faceted search is implemented using the Apache Solr platform. The focus is on searching based on ingredients. The web application is a single-page application implemented using the React.js library at the frontend and the Express.js framework at the backend. Both parts of the application are written in statically typed language TypeScript and exchange information through REST API.
 }
 
 % 3 až 5 klíčových slov (doporučeno), každé uzavřeno ve složených závorkách

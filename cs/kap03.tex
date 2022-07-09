@@ -139,9 +139,9 @@ uuid.v5(name, NAMESPACE_UUID)}
 %$
 Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se na stejné uuid a vyhneme se duplicitě. Jména pro tento účel vždy převedeme do lowercase formátu.
 
-\subsection{Linkování datasetů}
+\subsection{Propojení datasetů se znalostními grafy}
 
-Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou u Food.com i Allrecipes v adresáři \texttt{rdf-data}.
+Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou pro Food.com i Allrecipes v adresáři \texttt{rdf-data}.
 
 \subsection{DBpedia}
 
@@ -217,7 +217,7 @@ Koncept Hooks byl poprvé uveden ve verzi React $16.8$. Jedná se o speciální 
 
 Pro pojmenování Hooks existuje striktní jmenná konvence --- všechny Hooks musejí začínat slovem \texttt{use}. Příklady nejdůležitějších Hooks poskytovaných knihovnou React jsou \texttt{useState} a \texttt{useEffect} vztahující se po řadě ke stavu a životnímu cyklu komponenty. V rámci jedné komponenty je lze podle potřeby využít libovolně mnohokrát. Také je možné vytvářet vlastní Hooks. Stejně jako komponenty se ukládají do souborů s koncovkou \texttt{tsx} a React je správně identifikuje jako Hooks právě na základě jména s počátečním slovem \texttt{use}. Kromě správného pojmenování musí Hooks dodržovat následující omezení \citep{react-hooks-w3c}:
 \begin{itemize}
-    \item Hooks mohou být použity pouze uvnitř funkcionálních komponent. V běžných funkcích ani komponentách implementovaných jako třída nebudou fungovat.
+    \item Hooks mohou být použity pouze uvnitř funkcionálních komponent. V běžných funkcích ani komponentách implementovaných pomocí třídy nebudou fungovat.
     \item Hooks nelze volat ve vnořených funkcích komponenty.
     \item Hooks nemohou ukládat různý výsledek na základě podmínky.
 \end{itemize}
@@ -229,9 +229,9 @@ Knihovnu React lze s aplikací integrovat různými způsoby. Nejjednodušším 
 npx create-react-app frontend
 \end{code}
 %$
-Aplikaci spustíme na výchozí adrese \texttt{localhost:3000} spuštěním příkazu \texttt{npm start} v kořenovém adresáři \texttt{frontend}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
+Aplikaci spustíme z kořenového adresáře \texttt{frontend} příkazem \texttt{npm\,start}. Výchozí adresou je \texttt{localhost:3000}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
 
-\subsubsection{Výchozí HTML dokument}
+\subsubsection{HTML dokument single-page aplikace}
 
 V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index.html}. Ten nebude potřeba z naší strany příliš modifikovat, pouze přidáme odkaz na ikony z knihovny Material UI, abychom je mohli využívat v rámci aplikace a také nahradíme obsah tagu \texttt{<title>} názvem našeho projektu, tedy MeaLinker. V adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme logo vygenerované webovou aplikací Logo Maker\footnote{https://express.adobe.com/express-apps/logo-maker/} z dílny Adobe Express, které zadáme klíčové slovo \emph{Recipe}. Pokud bychom potřebovali banner včetně jména aplikace, přidali bychom do konfigurace generování loga ještě název \emph{MeaLinker}. Jako podklad použijeme ikonu\footnote{https://thenounproject.com/icon/search-food-2835433/} dohledatelnou pod frází \emph{search food}. Vygenerovaný výsledek je znázorněn obrázkem \ref{obr03:mealinker-logo}. Při návrhu barevného schématu aplikace se stejně jako u loga budeme držet červených odstínů, které doplníme o prvky zelené jakožto sekundární barvy palety.
 
@@ -243,7 +243,8 @@ V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index
 
 \subsubsection{Výchozí bod aplikace}
 
-V adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}, který zajišťuje renderování těchto elementů pomocí metody \texttt{render}. Volání metody \texttt{render} odpovídá architektuře znázorněné v předchozí kapitole, viz obrázek \ref{obr02:react-app}:
+V adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}. Renderování vnořených elementů zajišťuje pomocí metody \texttt{render}, jejíž volání odpovídá architektuře znázorněné v předchozí kapitole, viz obrázek \ref{obr02:react-app}:
+
 \begin{code}
 const root = createRoot(
     document.getElementById("root") as HTMLElement
@@ -257,17 +258,106 @@ root.render(
 \end{code}
 %$
 
+Zbývající část architektury \ref{obr02:react-app} je implementována komponentou \texttt{App}, která rozděluje strukturu aplikace na hlavičku, hlavní obsah uvnitř tagu \texttt{<main>} a patičku. Odpovídající komponenty jsou vnořeny do komponenty \texttt{ThemeProvider}, která umožňuje používat prvky definovaného tématu kdekoli v aplikaci. Naše téma bude sestávat pouze z palety s primární a sekundární barvou. Zjednodušená struktura komponenty \texttt{App} v kódu vypadá následovně (proměnná \texttt{theme} je vytvořena před samotnou komponentou):
+
+\begin{code}
+<HelmetProvider>
+  <ThemeProvider theme={theme}>
+    <Header />
+    <main>
+      <Routes>
+        <Route path="/recipes" element={<Recipes />} />
+        <Route path="/recipes/:recipeId" element={<RecipeDetail />} />
+        <Route path="/" element={<Navigate to="/recipes" />} />
+      </Routes>
+    </main>
+    <Footer />
+  </ThemeProvider>
+</HelmetProvider>
+\end{code}
+%$
+
+Komponenta \texttt{Routes} definuje, jaké komponenty se mají renderovat na základě zadané URL adresy. Například při otevření stránky s relativní adresou \texttt{/recipes} se uvnitř tagu \texttt{main} vyrenderuje komponenta \texttt{Recipes}. Pokud k této adrese přidáme id receptu, vyrenderuje se komponenta \texttt{RecipeDetail}, uvnitř které můžeme přistoupit k hodnotě proměnné \texttt{recipeId} prostřednictvím funkce \texttt{useParams} z knihovny \texttt{react-router-dom}.
+
+Důležitá je také komponenta \texttt{HelmetProvider}, která vystupuje jako obal komponenty \texttt{ThemeProvider} a je tak návratovým elementem komponenty \texttt{App}. \texttt{HelmetProvider} pochází z knihovny \texttt{react-helmet-async}\footnote{https://www.npmjs.com/package/react-helmet-async}, která umožňuje měnit obsah hlavičky HTML dokumentu uvnitř aplikace. Tuto funkcionalitu potřebujeme pro vložení strukturovaných JSON-LD dat do hlavičky HTML na stránce detailu receptu a ingredience. Jelikož se tyto stránky generují dynamicky na základě unikátního id v URL adrese, musíme JSON-LD data vkládat rovněž dynamicky podle aktuálního id. Komponentu \texttt{Helmet} lze vnořit na libovolné místo v JSX kódu aplikace. Příklad využití z komponenty \texttt{RecipeDetail}:
+
+\begin{code}
+<Helmet>
+  <script className="recipe-jsonld" type="application/ld+json">
+    {JSON.stringify(recipe.jsonld)}
+  </script>
+</Helmet>
+\end{code}
+%$
+
 \subsubsection{Binární soubory}
 
 V adresáři \texttt{src/assets} soustředíme potřebné binární soubory. V současné verzi aplikace zde budou pouze obrázky, konkrétně ikony využívané napříč aplikací. Většinu získáme z kolekce volně dostupných ikon platformy Flaticon\footnote{https://www.flaticon.com/}. Je vyžadován odkaz na zdroj a tvůrce ikony, s čímž si poradíme zahrnutím odkazů uvnitř tagu \texttt{<footer>}.
 
 \subsubsection{Funkcionální komponenty}
 
-Adresář \texttt{src} kromě obsahuje také podadresáře \texttt{recipes} a \texttt{ingredients}. Oba mají podobnou strukturu a obsahují adresáře \texttt{pages}, \texttt{components} a texttt{types}. Adresář texttt{types} obsahuje definice typů entit, které jsou přijímány ze serverové části aplikace. Za povšimnutí stojí koncovka souborů typů, která je rozdílná od většiny ostatních souborů na frontendu, tedy texttt{ts} namísto texttt{tsx}. Jedná se totiž o běžné soubory jazyka TypeScript, nikoli o komponenty určené specificky pro knihovnu React psané syntaxí TSX. Jinak jednotlivé typy odpovídají definicím na backendu aplikace, nemusíme se jim tedy dále věnovat.
+Adresář \texttt{src} kromě assetů obsahuje také podadresáře \texttt{recipes} a \texttt{ingredients}. Oba mají podobnou strukturu a obsahují adresáře \texttt{pages}, \texttt{components} a \texttt{types}. Adresáře \texttt{types} obsahují definice typů entit, které jsou přijímány ze serverové části aplikace. Pokud bychom aplikaci psali pouze v JavaScriptu, vystačili bychom si s volitelnými anotacemi funkcí pro vyjádření typů parametrů. Za povšimnutí stojí koncovka souborů typů, která je rozdílná od většiny ostatních souborů na frontendu, tedy \texttt{ts} namísto \texttt{tsx}. Jedná se totiž o běžné soubory jazyka TypeScript, nikoli o komponenty určené specificky pro knihovnu React psané syntaxí TSX. Jinak jednotlivé typy odpovídají definicím na backendu aplikace, nemusíme se jim tedy dále věnovat.
 
-\paragraph{Komponenty obrazovek}\mbox{}\\
+Jak napovídá název, obsah adresářů \texttt{pages} bude souviset s jednotlivými obrazovkami aplikace. Najdeme zde pouze komponenty reprezentující jednotlivé stránky, které jsou zároveň provázané s komponentami \texttt{Route} z \texttt{App.tsx} skrze položku \texttt{element}. Konkrétně se v adresářích nazvaných \texttt{pages} nacházejí komponenty \texttt{Recipes}, \texttt{RecipeDetail} a \texttt{IngredientDetail}.
 
+Zbylé stavební komponenty aplikace jsou rozmístěny v adresářích \texttt{components}. Při jejich tvorbě se snažíme uplatňovat již zmíněný princip jedné odpovědnosti a provádět dekompozici příliš komplexních komponent. Také využijeme architekturu callback funkcí, které pošleme skrze props do vnořené komponenty a aktivujeme je na základě události spravované komponentou potomka (například stisku tlačítka). V některých případech bude muset callback projít přes více komponent.
 
+\subsubsection{Sdílené komponenty a funkce}
 
+Posledním podadresářem uvnitř \texttt{src} je adresář \texttt{shared}. Najdeme zde již zná\-mé adresáře \texttt{types} s typy pro TypeScript a \texttt{components} s komponentami využívanými na více místech aplikace. Dále adresář \texttt{hooks} vyhrazený pro vlastní Hooks. Aktuálně obsahuje jediný soubor \texttt{use-http.tsx} s exportovanou funkcí \texttt{useHttp}. Tu využijeme všude, kde potřebujeme asynchronně komunikovat se serverem aplikace: 
+\begin{itemize}
+    \item V komponentě \texttt{Recipes} pro získání receptů na základě vyhledávacích parametrů.
+    \item V komponentě \texttt{RecipeDetail} pro vyhledání receptu dle id z URL.
+    \item V komponentě \texttt{IngredientDetail} pro vyhledání ingredience dle id z URL.
+\end{itemize}
+Kromě \texttt{types}, \texttt{components} a \texttt{hooks} jsou do adresáře \texttt{shared} přesunuty pomocné funkce z různých částí aplikace. Jejich soubory jsou soustředěny v podadresáři \texttt{tools} a mohou mít běžnou koncovku \texttt{ts}, ale i rozšířenou \texttt{tsx}, pokud pracují s parametry nebo návratovými hodnotami typu \texttt{JSX.Element}.
 
-\paragraph{Stavební komponenty}\mbox{}\\
+\subsection{Komunikace přes REST API}
+
+Jak jsme zmínili v předchozí části, pro zajištění asynchronní komunikace se serverovou částí aplikace jsme vytvořili vlastní Hook v podobě funkce \texttt{useHttp}. Co se týče stránek s detaily receptů a ingrediencí, získání dat je přímočaré --- z URL adresy získáme unikátní identifikátor, z něj vytvoříme URL adresu pro příslušný endpoint našeho REST API a vyžádáme si data pomocí HTTP GET požadavku. Musíme si ale dát pozor na správné nastavení výchozích hodnot proměnných, se kterými dále pracujeme v rámci renderování. Než se nám data načtou, nemůžeme přistupovat ke vnořeným položkám, pokud je explicitně nezadefinujeme v rámci výchozí hodnoty. Pokud bychom například načítali data receptu do proměnné \texttt{recipe} a její výchozí hodnotu nastavili na null, nemohli bychom pracovat s položkami \texttt{recipe.jsonld} a \texttt{recipe.structured} před tím, než data skutečně dorazí. Aplikace by spadla s běhovou chybou, neboť bychom se snažili přistoupit k hodnotě \texttt{null.jsonld} a \texttt{null.structured}. Proměnnou recipe tedy raději vytvoříme následovně:
+\begin{code}
+const [recipe, setRecipe] = useState<FullRecipe>({
+  jsonld: {},
+  structured: {},
+} as FullRecipe);
+\end{code}
+%$
+Nyní můžeme přistupovat i k položkám zanořeným o úroveň hlouběji, například \texttt{recipe.structured.ingredients}, které budou mít validní hodnotu \texttt{undefined}.
+
+Získávání dat pro stránku vyhledávání receptů lze pojmout různými způsoby, které se liší komplexitou a rychlostí prezentace dat uživateli. V naší aplikaci pracujeme s konceptem stránkování, přičemž počet výsledků na jedné stránce poměrně výrazně omezíme na $24$ výsledků z důvodu zrychlení renderování. Při každém přidání nového filtru aktualizujeme query parametry současné URL adresy a od endpointu \texttt{/api/recipes}, respektive \texttt{localhost:5000/api/recipes}, si vyžádáme nové výsledky. Během vývoje aplikace pracujeme výhradně na adrese \texttt{localhost}, nelze tedy reálně otestovat, za jak dlouho dorazí odpověď, pokud je dotaz poslán ze zařízení klienta na vzdálený server. V případě komunikace v rámci \texttt{localhost} trvá zpracování dotazu přibližně $50\,$ms. Máme tedy desetinásobnou rezervu vzhledem k požadavku získání dat do $500\,$ms, což by mělo být dostačující. V opačném případě bychom museli implementovat mechanismus cachování.
+
+\subsubsection{Možnosti cachování}
+
+Cachování by zrychlilo načítání výsledků při listování více stranami receptů a také během navigace v historii prohlížeče. Na druhou stranu by zaneslo do aplikace dodatečnou komplexitu. Očekáváme, že častějším scénářem vyhledávání bude spíše experimentování s různými filtry než prohlížení spousty stránek výsledků se stejnými filtry. Při rychlém střídání filtrů nám běžné cachování nepomůže, museli bychom implementovat složitější řešení s cachováním nejčastějších dotazů. V aktuální fázi se tedy této optimalizaci věnovat nebudeme.
+
+\subsection{Implementace vyhledávání receptů}
+
+V této sekci se podíváme na vybrané aspekty klíčové funkcionality naší aplikaci, tedy samotného vyhledávání receptů na základě filtrů.
+
+\subsubsection{Fasetový našeptávač}
+
+Zadávání vyhledávacích filtrů implementujeme pomocí knihovny Material UI a její komponenty \texttt{Autocomplete}. Ta nabízí spoustu užitečných funkcí za cenu poměrně jednoduché konfigurace prostřednictvím props, samozřejmě má ale i své limity. Největším omezením je pro nás maximální počet $2\,000$ položek našeptávače. Větší počet sice zakázán není, rychlost renderování seznamu položek ale rapidně klesá, což způsobuje dojem zamrznutí komponenty. My jsme přitom připravili více než  $5\,000$ vyhledávacích ingrediencí, které kvůli tomuto omezení nemůžeme nabídnout v rámci jednoho seznamu. Nicméně při ručním psaní názvu ingredience se nabízené položky aktualizují a jejich počet brzy klesá pod povolenou hranici $2\,000$ slov. Vždy zobrazíme maximálně prvních $2\,000$ položek na základě jejich oblíbenosti, tedy dle počtu receptů, ve kterých se vyskytují.
+
+\subsubsection{Manuální zadávání filtrů}
+
+Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, zpřístupníme také vyhledávání na základě vlastních výrazů. Uživatel si tak může vybrat způsob vyhledávání, který lépe vyhovuje jeho potřebám. Častější pravděpodobně bude vyhledávání podle nabízených filtrů, u kterých je předem známý počet výsledků. Nicméně jsou i situace, kdy se hodí vyzkoušet vlastní filtr --- například pokud máme přesné množství nějaké suroviny, můžeme zkusit vyhledat recepty vyžadující stejné množství. Ukázky přesnějších filtrů:
+\begin{code}
+600 g chicken
+1/4 cup yoghurt
+2 cloves garlic
+\end{code}
+%$
+
+\subsubsection{Zvýraznění ingrediencí}
+
+Filtrování receptů na základě ingrediencí je primárním kritériem vyhledávání. Proto tento způsob vyhledávání podpoříme zvýrazněním vyhledávaných surovin v seznamu všech ingrediencí nalezených receptů. Součástí odpovědi serveru aplikace je mapování receptů a nalezených ingrediencí. Zvýrazněná část textu je označena řetězcem reprezentujícím tag \texttt{<em>}. Pro správné zobrazení musíme celý text \texttt{"}\texttt{<em>ingredient</em>"} nahradit odpovídajícím React elementem. K tomuto účelu využijeme balíček \texttt{react-string-replace} a vytvoříme tag \texttt{<strong>} s obsahem ke zvýraznění:
+\begin{code}
+reactStringReplace(
+  ingredient,
+  /<em>([^<]*)<\/em>/gi,
+  (match, i) => <strong key={i}>{match}</strong>,
+);
+\end{code}
+%$
+
+Navíc musíme zkontrolovat, jestli text ingrediencí neobsahuje nějaký odkaz, například na jiný recept nebo ingredienci. Pro vyřešení odkazů potřebujeme opět zapojit funkci \texttt{reactStringReplace} a nahradit odkaz elementem \texttt{Link}.
