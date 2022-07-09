@@ -147,7 +147,7 @@ Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia
 
 Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v adresáři \texttt{data/resources/dbpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale v~závislosti na počtu nalezených spojení mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
 
-Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých formátů. Pro naše účely bude nejpraktičtější formát JSON-LD, jehož obsah využijeme v~hlavičkách HTML dokumentů. Se SPARQL endpointem lze komunikovat přes grafické rozhraní ve webovém prohlížeči nebo prostřednictvím HTTP GET požadavků. Pro snadnější automatizaci procesu extrakce využijeme druhou možnost, kde obsah dotazu předáme na místě query parametru s~názvem \texttt{query}. Šablona dotazu konstruujícího RDF graf je umístěná v souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou vloženy pomocí regulárních výrazů do množiny tzv. \texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
+Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Šablona dotazu konstruujícího RDF graf je umístěná v souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou vloženy pomocí regulárních výrazů do množiny tzv. \texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
 
 \begin{code}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -181,6 +181,8 @@ WHERE {
 \end{code}
 %$
 
+Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých formátů. Pro naše účely bude nejpraktičtější formát JSON-LD, jehož obsah využijeme v~hlavičkách HTML dokumentů. Se SPARQL endpointem lze komunikovat přes grafické rozhraní ve webovém prohlížeči nebo prostřednictvím HTTP GET požadavků. Pro snadnější automatizaci procesu extrakce využijeme druhou možnost, kde obsah dotazu předáme na místě query parametru s~názvem \texttt{query}. 
+
 \subsection{Wikidata}
 
 Proces extrakce dat z grafu Wikidata bude probíhat analogicky k~postupu pro DBpedia z předchozího odstavce. I~zde využijeme HTTP GET požadavky na SPARQL endpoint, kde prostřednictvím query parametrů předáme obsah dotazu a~požadovaný formát výsledku. Projekt Wikidata neposkytuje reprezentaci JSON-LD, vystačíme si ale s~běžným JSON formátem, který lze vyžádat přes hodnotu query parametru \texttt{format} nastavenou na \texttt{json}. Z~této reprezentace pak sami vytvoříme odpovídající JSON-LD formát, který je vhodný pro strukturovaná data v~hlavičce HTML dokumentu.
@@ -189,6 +191,17 @@ Související soubory jsou uloženy v destinaci: \texttt{data/resources/wikidata
 
 \section{Databáze Apache CouchDB}
 
+Pro uložení dat jsme vybrali dokumentový databázový systém CouchDB z důvodů popsaných v kapitole o architektuře aplikace.  S~CouchDB můžeme komunikovat přes webové rozhraní skrze aplikaci Fauxton, pomocí REST~API nebo prostřednictvím již zmíněné knihovny v~prostředí Node.js. Pro automatizované nahrávání dokumentů využijeme oficiální knihovnu Nano\footnote{https://www.npmjs.com/package/nano}.
+
+S~velikostí našeho projektu si můžeme dovolit při nahrávání nových dat nejprve stávající data odstranit a~poté je vložit do čisté databáze. Kdybychom totiž chtěli dokumenty aktualizovat, potřebovali bychom u~každého z~nich poskytnout aktuální verzi, což by pro přepsání celé databáze byl zbytečně komplikovaný postup. S~rostoucím počtem dokumentů bychom ale nejspíše museli přistoupit na aktualizaci dat namísto jejich odstraňování a~opětovného nahrávání, neboť již pro přidání kolekce o~velikosti $50\,000$ dokumentů se pohybujeme v~řádu delších minut.
+
+S knihovnou Nano pracujeme na 2 místech projektu. Poprvé v rámci přípravy a nahrání dat do CouchDB, podruhé na backendu aplikace pro získání uložených dokumentů na základě identifikátorů. Oba přístupy do databáze vyžadují přihlašovací heslo --- uložíme jej jako proměnnou prostředí, ke které se v kódu dostaneme přes rozhraní \texttt{process.env}. Instanci CouchDB spustíme na výchozím portu $5984$.
+
+\subsection{Vložení dokumentů}
+
+Nahrávání dokumentů zajišťuje skript \texttt{database-manager.mjs} umístěný v adresáři \texttt{data/database}. Před uložením dokumentů do databáze jsou všechny řetězce obsažené v jednotlivých objektech receptů a ingrediencí dekódovány pomocí funkcí \texttt{decode} a \texttt{unescape}.
+
+\subsection{Přístup k dokumentům}
 
 \section{Vyhledávání pomocí Apache Solr}
 
@@ -229,11 +242,14 @@ Knihovnu React lze s aplikací integrovat různými způsoby. Nejjednodušším 
 npx create-react-app frontend
 \end{code}
 %$
+
 Aplikaci spustíme z kořenového adresáře \texttt{frontend} příkazem \texttt{npm\,start}. Výchozí adresou je \texttt{localhost:3000}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
 
 \subsubsection{HTML dokument single-page aplikace}
 
-V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index.html}. Ten nebude potřeba z naší strany příliš modifikovat, pouze přidáme odkaz na ikony z knihovny Material UI, abychom je mohli využívat v rámci aplikace a také nahradíme obsah tagu \texttt{<title>} názvem našeho projektu, tedy MeaLinker. V adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme logo vygenerované webovou aplikací Logo Maker\footnote{https://express.adobe.com/express-apps/logo-maker/} z dílny Adobe Express, které zadáme klíčové slovo \emph{Recipe}. Pokud bychom potřebovali banner včetně jména aplikace, přidali bychom do konfigurace generování loga ještě název \emph{MeaLinker}. Jako podklad použijeme ikonu\footnote{https://thenounproject.com/icon/search-food-2835433/} dohledatelnou pod frází \emph{search food}. Vygenerovaný výsledek je znázorněn obrázkem \ref{obr03:mealinker-logo}. Při návrhu barevného schématu aplikace se stejně jako u loga budeme držet červených odstínů, které doplníme o prvky zelené jakožto sekundární barvy palety.
+V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index.html}. Ten nebude potřeba z naší strany příliš modifikovat, pouze přidáme odkaz na ikony z knihovny Material UI, abychom je mohli využívat v rámci aplikace a také nahradíme obsah tagu \texttt{<title>} názvem našeho projektu, tedy MeaLinker.
+
+V adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme logo vygenerované webovou aplikací Logo Maker\footnote{https://express.adobe.com/express-apps/logo-maker/} z dílny Adobe Express, které zadáme klíčové slovo \emph{Recipe}. Pokud bychom potřebovali banner včetně jména aplikace, přidali bychom do konfigurace generování loga ještě název \emph{MeaLinker}. Jako podklad použijeme ikonu\footnote{https://thenounproject.com/icon/search-food-2835433/} dohledatelnou pod frází \emph{search food}. Vygenerovaný výsledek je znázorněn obrázkem \ref{obr03:mealinker-logo}. Při návrhu barevného schématu aplikace se stejně jako u loga budeme držet červených odstínů, které doplníme o prvky zelené jakožto sekundární barvy palety.
 
 \begin{figure}[h!]\centering
 \includegraphics[width=40mm]{../img/mealinker-logo}
@@ -245,21 +261,28 @@ V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index
 
 V adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}. Renderování vnořených elementů zajišťuje pomocí metody \texttt{render}, jejíž volání odpovídá architektuře znázorněné v předchozí kapitole, viz obrázek \ref{obr02:react-app}:
 
+\begingroup
+\samepage
 \begin{code}
 const root = createRoot(
     document.getElementById("root") as HTMLElement
 );
 
 root.render(
-  <React.StrictMode>
-    <BrowserRouter><App /></BrowserRouter>
-  </React.StrictMode>,
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
 );
 \end{code}
 %$
+\endgroup
 
 Zbývající část architektury \ref{obr02:react-app} je implementována komponentou \texttt{App}, která rozděluje strukturu aplikace na hlavičku, hlavní obsah uvnitř tagu \texttt{<main>} a patičku. Odpovídající komponenty jsou vnořeny do komponenty \texttt{ThemeProvider}, která umožňuje používat prvky definovaného tématu kdekoli v aplikaci. Naše téma bude sestávat pouze z palety s primární a sekundární barvou. Zjednodušená struktura komponenty \texttt{App} v kódu vypadá následovně (proměnná \texttt{theme} je vytvořena před samotnou komponentou):
 
+\begingroup
+\samepage
 \begin{code}
 <HelmetProvider>
   <ThemeProvider theme={theme}>
@@ -276,11 +299,14 @@ Zbývající část architektury \ref{obr02:react-app} je implementována kompon
 </HelmetProvider>
 \end{code}
 %$
+\endgroup
 
 Komponenta \texttt{Routes} definuje, jaké komponenty se mají renderovat na základě zadané URL adresy. Například při otevření stránky s relativní adresou \texttt{/recipes} se uvnitř tagu \texttt{main} vyrenderuje komponenta \texttt{Recipes}. Pokud k této adrese přidáme id receptu, vyrenderuje se komponenta \texttt{RecipeDetail}, uvnitř které můžeme přistoupit k hodnotě proměnné \texttt{recipeId} prostřednictvím funkce \texttt{useParams} z knihovny \texttt{react-router-dom}.
 
 Důležitá je také komponenta \texttt{HelmetProvider}, která vystupuje jako obal komponenty \texttt{ThemeProvider} a je tak návratovým elementem komponenty \texttt{App}. \texttt{HelmetProvider} pochází z knihovny \texttt{react-helmet-async}\footnote{https://www.npmjs.com/package/react-helmet-async}, která umožňuje měnit obsah hlavičky HTML dokumentu uvnitř aplikace. Tuto funkcionalitu potřebujeme pro vložení strukturovaných JSON-LD dat do hlavičky HTML na stránce detailu receptu a ingredience. Jelikož se tyto stránky generují dynamicky na základě unikátního id v URL adrese, musíme JSON-LD data vkládat rovněž dynamicky podle aktuálního id. Komponentu \texttt{Helmet} lze vnořit na libovolné místo v JSX kódu aplikace. Příklad využití z komponenty \texttt{RecipeDetail}:
 
+\begingroup
+\samepage
 \begin{code}
 <Helmet>
   <script className="recipe-jsonld" type="application/ld+json">
@@ -289,6 +315,7 @@ Důležitá je také komponenta \texttt{HelmetProvider}, která vystupuje jako o
 </Helmet>
 \end{code}
 %$
+\endgroup
 
 \subsubsection{Binární soubory}
 
@@ -301,6 +328,8 @@ Adresář \texttt{src} kromě assetů obsahuje také podadresáře \texttt{recip
 Jak napovídá název, obsah adresářů \texttt{pages} bude souviset s jednotlivými obrazovkami aplikace. Najdeme zde pouze komponenty reprezentující jednotlivé stránky, které jsou zároveň provázané s komponentami \texttt{Route} z \texttt{App.tsx} skrze položku \texttt{element}. Konkrétně se v adresářích nazvaných \texttt{pages} nacházejí komponenty \texttt{Recipes}, \texttt{RecipeDetail} a \texttt{IngredientDetail}.
 
 Zbylé stavební komponenty aplikace jsou rozmístěny v adresářích \texttt{components}. Při jejich tvorbě se snažíme uplatňovat již zmíněný princip jedné odpovědnosti a provádět dekompozici příliš komplexních komponent. Také využijeme architekturu callback funkcí, které pošleme skrze props do vnořené komponenty a aktivujeme je na základě události spravované komponentou potomka (například stisku tlačítka). V některých případech bude muset callback projít přes více komponent.
+
+API dokumentace jednotlivých komponent je dostupná v adresáři \texttt{docs} skrze soubor \texttt{index.html}, případně na domovské stránce\footnote{https://lhotanok.github.io/MeaLinker} projektu implementované pomocí GitHub Pages. Adresář \texttt{docs} musí být umístěn v kořeni repositáře pro kompatibilitu s GitHub Pages. Dokumentace byla vygenerována pomocí nástroje React Styleguidist\footnote{https://github.com/styleguidist/react-styleguidist} spuštěním příkazu \texttt{npm styleguide:build} uvnitř adresáře \texttt{frontend}.
 
 \subsubsection{Sdílené komponenty a funkce}
 
@@ -315,6 +344,8 @@ Kromě \texttt{types}, \texttt{components} a \texttt{hooks} jsou do adresáře \
 \subsection{Komunikace přes REST API}
 
 Jak jsme zmínili v předchozí části, pro zajištění asynchronní komunikace se serverovou částí aplikace jsme vytvořili vlastní Hook v podobě funkce \texttt{useHttp}. Co se týče stránek s detaily receptů a ingrediencí, získání dat je přímočaré --- z URL adresy získáme unikátní identifikátor, z něj vytvoříme URL adresu pro příslušný endpoint našeho REST API a vyžádáme si data pomocí HTTP GET požadavku. Musíme si ale dát pozor na správné nastavení výchozích hodnot proměnných, se kterými dále pracujeme v rámci renderování. Než se nám data načtou, nemůžeme přistupovat ke vnořeným položkám, pokud je explicitně nezadefinujeme v rámci výchozí hodnoty. Pokud bychom například načítali data receptu do proměnné \texttt{recipe} a její výchozí hodnotu nastavili na null, nemohli bychom pracovat s položkami \texttt{recipe.jsonld} a \texttt{recipe.structured} před tím, než data skutečně dorazí. Aplikace by spadla s běhovou chybou, neboť bychom se snažili přistoupit k hodnotě \texttt{null.jsonld} a \texttt{null.structured}. Proměnnou recipe tedy raději vytvoříme následovně:
+\begingroup
+\samepage
 \begin{code}
 const [recipe, setRecipe] = useState<FullRecipe>({
   jsonld: {},
@@ -323,6 +354,7 @@ const [recipe, setRecipe] = useState<FullRecipe>({
 \end{code}
 %$
 Nyní můžeme přistupovat i k položkám zanořeným o úroveň hlouběji, například \texttt{recipe.structured.ingredients}, které budou mít validní hodnotu \texttt{undefined}.
+\endgroup
 
 Získávání dat pro stránku vyhledávání receptů lze pojmout různými způsoby, které se liší komplexitou a rychlostí prezentace dat uživateli. V naší aplikaci pracujeme s konceptem stránkování, přičemž počet výsledků na jedné stránce poměrně výrazně omezíme na $24$ výsledků z důvodu zrychlení renderování. Při každém přidání nového filtru aktualizujeme query parametry současné URL adresy a od endpointu \texttt{/api/recipes}, respektive \texttt{localhost:5000/api/recipes}, si vyžádáme nové výsledky. Během vývoje aplikace pracujeme výhradně na adrese \texttt{localhost}, nelze tedy reálně otestovat, za jak dlouho dorazí odpověď, pokud je dotaz poslán ze zařízení klienta na vzdálený server. V případě komunikace v rámci \texttt{localhost} trvá zpracování dotazu přibližně $50\,$ms. Máme tedy desetinásobnou rezervu vzhledem k požadavku získání dat do $500\,$ms, což by mělo být dostačující. V opačném případě bychom museli implementovat mechanismus cachování.
 
@@ -351,6 +383,8 @@ Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, 
 \subsubsection{Zvýraznění ingrediencí}
 
 Filtrování receptů na základě ingrediencí je primárním kritériem vyhledávání. Proto tento způsob vyhledávání podpoříme zvýrazněním vyhledávaných surovin v seznamu všech ingrediencí nalezených receptů. Součástí odpovědi serveru aplikace je mapování receptů a nalezených ingrediencí. Zvýrazněná část textu je označena řetězcem reprezentujícím tag \texttt{<em>}. Pro správné zobrazení musíme celý text \texttt{"}\texttt{<em>ingredient</em>"} nahradit odpovídajícím React elementem. K tomuto účelu využijeme balíček \texttt{react-string-replace} a vytvoříme tag \texttt{<strong>} s obsahem ke zvýraznění:
+\begingroup
+\samepage
 \begin{code}
 reactStringReplace(
   ingredient,
@@ -359,5 +393,5 @@ reactStringReplace(
 );
 \end{code}
 %$
-
+\endgroup
 Navíc musíme zkontrolovat, jestli text ingrediencí neobsahuje nějaký odkaz, například na jiný recept nebo ingredienci. Pro vyřešení odkazů potřebujeme opět zapojit funkci \texttt{reactStringReplace} a nahradit odkaz elementem \texttt{Link}.
