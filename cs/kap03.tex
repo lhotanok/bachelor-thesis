@@ -246,14 +246,12 @@ V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index
 V adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}, který zajišťuje renderování těchto elementů pomocí metody \texttt{render}. Volání metody \texttt{render} odpovídá architektuře znázorněné v předchozí kapitole, viz obrázek \ref{obr02:react-app}:
 \begin{code}
 const root = createRoot(
-    document.getElementById('root') as HTMLElement
+    document.getElementById("root") as HTMLElement
 );
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <BrowserRouter><App /></BrowserRouter>
   </React.StrictMode>,
 );
 \end{code}
