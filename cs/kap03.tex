@@ -94,6 +94,8 @@ První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~po
 
 \subsection{Allrecipes}
 
+Pomocí vlastní extrakce dat získáme kompletní sadu receptů z webové aplikace Allrecipes. Vyřadíme pouze recepty, které neobsahují informace o nutričních hodnotách.
+
 \subsubsection{Extrakce dat}
 
 Základní struktura actora pro extrakci dat z webové aplikace Allrecipes bude podobná jako u Food.com v předchozí sekci. Speciálně zpracování stránek s detaily receptů bude téměř identické, pouze využijeme dodatečné informace k ingrediencím obsažené v HTML elementech a uložíme je na pozici strukturovaných ingrediencí. Mezi actory ale bude podstatný rozdíl v získání odkazů na jednotlivé recepty. Actor pro Allrecipes nebude URL adresy přijímat na vstupu a namísto toho si je vyrobí sám. Má více způsobů, jak k extrakci přistoupit. My se podíváme na extrakci prostřednictvím interního API z vyhledávací stránky receptů a na typický přístup procházení jednotlivých kategorií.
@@ -139,7 +141,7 @@ uuid.v5(name, NAMESPACE_UUID)}
 %$
 Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se na stejné uuid a vyhneme se duplicitě. Jména pro tento účel vždy převedeme do lowercase formátu.
 
-\subsection{Propojení datasetů se znalostními grafy}
+\subsection{Linkování se znalostními grafy}
 
 Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou pro Food.com i Allrecipes v adresáři \texttt{rdf-data}.
 
@@ -203,11 +205,66 @@ Nahrávání dokumentů zajišťuje skript \texttt{database-manager.mjs} umíst�
 
 \subsection{Přístup k dokumentům}
 
-Kód pro hledání dokumentů receptů a ingrediencí dle zadaného id je soustředěn v adresáři \texttt{app/backend/src/couchdb}. Dokumenty jsou rozděleny do databází, respektive kolekcí \texttt{recipes} a \texttt{ingredients}. Adresář \texttt{types} obsahuje definice typů, které potřebujeme, pokud chceme pracovat s typovou podporou jazyka TypeScript. Schéma dokumentů není pevně definováno, takže typy slouží spíše pro naši kontrolu a případné logování. A to zejména na backendu aplikace, kde s jednotlivými položkami objektů většinou nepotřebujeme dále pracovat a pouze celý objekt odesíláme na frontend. Stejnou kolekci typů definujeme nezávisle na backendu i frontendu, neboť by jejich adresáře teoreticky mohly být uloženy na různých zařízeních a tudíž  by na sobě neměly být závislé. Pokud by nám vzájemná závislost nevadila, stačilo by vytvořit typy pouze jednou v kořenovém adresáři \texttt{app}, do kterého mají přístup obě části aplikace. Aktuálně se v kontextu databáze jedná o typy \texttt{FullRecipe}, \texttt{FullIngredient}, \texttt{RecipeJsonld} a řadu vnořených typů, jako například \texttt{RecipeIngredient}, \texttt{RecipeNutrition}, \texttt{PrepTime} nebo \texttt{Author}. 
+Kód pro hledání dokumentů receptů a ingrediencí dle zadaného id je soustředěn v adresáři \texttt{app/backend/src/couchdb}. Dokumenty jsou rozděleny do databází, respektive kolekcí \texttt{recipes} a \texttt{ingredients}. Adresář \texttt{types} obsahuje definice, které potřebujeme pro typovou podporu jazyka TypeScript a odpovídajícího IntelliSense. Schéma dokumentů není pevně definováno, takže typy slouží spíše pro naši kontrolu a případné logování. A to zejména na backendu aplikace, kde s jednotlivými položkami objektů většinou nepotřebujeme dále pracovat a nezměněný objekt odesíláme na frontend. Stejnou kolekci typů definujeme zvlášť na backendu i frontendu, neboť by jejich adresáře teoreticky mohly být uloženy na různých zařízeních a tudíž by na sobě neměly být závislé. Pokud by nám vzájemná závislost nevadila, stačilo by vytvořit typy pouze jednou v kořenovém adresáři \texttt{app}, do kterého mají přístup obě části aplikace. Aktuálně se v kontextu databáze jedná o typy \texttt{FullRecipe}, \texttt{FullIngredient}, \texttt{RecipeJsonld} a řadu vnořených typů, například \texttt{RecipeIngredient}, \texttt{RecipeNutrition}, \texttt{PrepTime} nebo \texttt{Author}. 
 
-Spojení s databází inicializujeme pouze jednou, což zaručíme zapojením třídy \texttt{NanoDbFactory} a konceptu návrhového vzoru singleton. Odkaz na spojení s databází si vždy vyžádáme od \texttt{NanoDbFactory}, která si drží statický slovník kolekcí dle jména, v našem případě \texttt{recipes} a \texttt{ingredients}. Pokud už má pro dané jméno spojení navázáno, nevytváří jej znova a vrátí odkaz na hodnotu ze slovníku. Se třídou \texttt{NanoDbFactory} komunikují modely \texttt{CouchDbRecipesModel} pro dokumenty receptů a \texttt{CouchDbIngredientsModel} pro dokumenty ingrediencí, které si o spojení s databází zažádají v konstruktoru. Pro každý zpracovávaný požadavek ze strany klienta se tak vytváří nová instance modelu, ale nikoli nové spojení s databází.
+Spojení s databází inicializujeme pouze jednou, což zaručíme zapojením třídy \texttt{NanoDbFactory} a konceptu návrhového vzoru singleton. Odkaz na spojení s databází si vždy vyžádáme od \texttt{NanoDbFactory}, která si drží statický slovník kolekcí dle jména, v našem případě \texttt{recipes} a \texttt{ingredients}. Pokud už má pro dané jméno spojení navázáno, nevytváří jej znova a vrátí odkaz na hodnotu ze slovníku. Se třídou \texttt{NanoDbFactory} komunikují modely dokumentů receptů a ingrediencí, tedy třídy \texttt{CouchDbRecipesModel} a \texttt{CouchDbIngredientsModel}. Pro každý zpracovávaný požadavek ze strany klienta se tak vytváří nová instance modelu, ale nikoli nové spojení s databází.
 
 \section{Vyhledávání pomocí Apache Solr}
+
+Stejně jako u práce s databází můžeme komunikaci se Solr rozdělit do $2$ fází:
+\begin{itemize}
+    \item Příprava dokumentů.
+    \item Zpracování dotazů nad dokumenty.
+\end{itemize}
+
+V obou fázích využijeme knihovnu Solr client\footnote{https://www.npmjs.com/package/solr-client}, která implementuje veškerou komunikaci se Solr potřebnou pro splnění požadavků aplikace. S platformou Solr bychom se dorozuměli i prostřednictvím základního REST API, což využijeme při tvorbě schématu. Pro vkládání dokumentů a dotazování se nad nimi je ovšem pohodlnější pracovat s více high-level rozhraním, což nám umožní právě zmíněná knihovna.
+
+\subsection{Příprava dokumentů}
+
+Během tvorby schématu pro dokumenty receptů musíme zohlednit $2$ základní požadavky vyhledávání:
+\begin{itemize}
+    \item Vyhledávané termíny musí být analyzovány jako lokalizovaný text, aktuálně výhradně anglický.
+    \item Během vyhledávání musí být k dispozici našeptávač s fasetovou hierarchií filtrů.
+\end{itemize}
+
+\subsubsection{Podpora fasetového vyhledávání}
+
+Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace. Stejný trik použijeme i u dalších filtrů, které musí být uloženy jako anglický text a zároveň ze stejných hodnot potřebujeme sestrojit fasetovou hierarchii. Pokud je mapování hodnot těchto filtrů $1$:$1$, můžeme využít konceptu tzv. \emph{copy field}. Na úrovni schématu nadefinujeme copy field z výchozí položky filtru do fasetové položky a hodnota se přidáním dokumentu automaticky zkopíruje.
+
+Skripty pro vytvoření schématu i následné nahrání dokumentů jsou k dispozici v adresáři \texttt{data/solr}. Vytvoření schématu pomocí skriptu \texttt{fields-manager.mjs} je myšleno jako jednorázová záležitost, zatímco aktualizace dokumentů skriptem \texttt{documents-manager.js} bude provedena při každém rozšíření databáze dokumentů.
+
+V rámci skriptu \texttt{documents-manager.js} jsou načteny dokumenty receptů přímo z databáze CouchDB. Následně jsou vybrána data vyžadovaná Solr modelem, který jsme popsali v předchozí kapitole při návrhu architektury. Data jsou převedena do odpovídajícího formátu vhodného pro indexování. Také je zde vyřešeno poměrně netriviální vyhledávání dle fasetových ingrediencí. Oproti ostatním položkám fasetové hierarchie jsou ingredience problematické, protože v základní položce \texttt{ingredients} ukládáme nestrukturovaný text ingredience včetně množství a jednotky měření. Není zde tedy mapování $1$:$1$ mezi výchozí položkou ingrediencí a odpovídající fasetovou položkou. Jména ingrediencí pro našeptávač získáme z normalizovaných ingrediencí datové sady Food.com. Pro korektní fasetovou hierarchii ale potřebujeme znát počet všech receptů, které jsou pod těmito jmény surovin nalezeny, nejen receptů z Food.com, s nimiž máme normalizované ingredience provázané. Jelikož jsme stále ve fázi předzpracování dat a můžeme si dovolit delší dobu výpočtu, aplikujeme následující algoritmus:
+\begin{enumerate}
+    \item Nahrajeme všechny dokumenty receptů do Solr.
+    \item Načteme vyhledávací ingredience ze souboru \texttt{search\underline{{ }}ingredients.json} uvnitř adresáře \texttt{data/resources/foodcom/ingredients}. Eventuálně můžeme zkombinovat vyhledávací ingredience vybrané z více různých datasetů s recepty.
+    \item Pro každou z vyhledávacích ingrediencí sestrojíme dotaz pro nalezení všech receptů na základě existující položky \texttt{ingredients}.
+    \item Projdeme všechny nalezené recepty, identifikujeme je v původní sadě receptů a uložíme do nich vyhledávací ingredienci v poli \texttt{\underline{{ }}ingredientsFacet}.
+    \item Odstraníme všechny dokumenty ze Solr.
+    \item Nahrajeme dokumenty s vyplněnými položkami \texttt{\underline{{ }}ingredientsFacet} do Solr.
+\end{enumerate}
+
+\subsection{Vyhledávací dotazy}
+
+Nad Solr dokumenty se budeme dotazovat na backendu aplikace prostřednictvím modelu \texttt{SolrRecipesModel}, jehož definici najdeme v adresáři \texttt{solr}. Stejně jako u modelů CouchDB vytváříme novou instanci \texttt{SolrRecipesModel} pro každý požadavek uživatele, spojení s platformou Solr ale udržujeme pouze jedno díky třídě \texttt{SolrClientFactory}. Formát dotazu pro vyhledání všech receptů vypadá ve zjednodušené podobě následovně:
+\begingroup
+\samepage
+\begin{code}
+const query = this.client
+  .query()
+  .q("*:*")
+  .facet({
+    pivot: {
+      fields: ["_ingredientsFacet"],
+    },
+    field: "_ingredientsFacet",
+    mincount: 1,
+  })
+  .start(offset)
+  .rows(rows)
+);
+\end{code}
+%$
+\endgroup
 
 
 \section{Middleware}

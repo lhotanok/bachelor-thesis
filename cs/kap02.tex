@@ -137,8 +137,6 @@ Prvním krokem pro práci s~platformou Solr je tedy kompletní návrh schématu 
 
 Fasetové vyhledávání, označované také jako fasetová navigace, je způsob interakce, během které uživatel filtruje výsledky výběrem validních hodnot fasetového klasifikačního systému. Tento styl vyhledávání nevyžaduje hierarchické uspořádání nabízených možností, díky čemuž lze filtry přidávat i~odebírat v~libovolném pořadí. Navíc uživatel typicky předem zná počet výsledků, které se po aplikování daného filtru zobrazí \citep{faceted-search}. V~kontextu naší aplikace se fasetová navigace hodí pro jednotlivé vlastnosti vyhledávání, jakými jsou nejen ingredience, ale také klíčová slova, kategorie, typ kuchyně, čas přípravy či hodnocení. Každý z~těchto filtrů je zcela nezávislý, není tedy žádoucí vytvářet kolem nich hierarchii. Nedávalo by smysl zpřístupnit například vyhledávání dle ingrediencí až po výběru kategorie receptu. Na druhou stranu, výběr kategorií může ovlivnit (respektive omezit) nabídku ingrediencí ve fasetové navigaci a~stejně tak volba určitých ingrediencí může vyřadit některé kategorie receptů.
 
-Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace.
-
 \subsubsection{Zvýraznění nalezených výrazů}
 
 Dalším konceptem, se kterým se během vyhledávání pomocí Solr setkáme, bude tzv. \emph{highlighting} neboli zvýraznění vyhledaných výrazů. Využijeme jej při prezentaci surovin jakožto primárního filtru. U~libovolného receptu na vyhledávací obrazovce bude možné zobrazit kompletní seznam ingrediencí. Pro lepší přehlednost zvýrazníme aktuálně vyhledávané ingredience tučným písmem a~pro přesnou identifikaci těchto pojmů využijeme vestavěnou funkci od platformy Solr. Informace o~zvýrazněných ingrediencích doručíme na frontend aplikace spolu s~dokumenty receptů.
@@ -148,7 +146,6 @@ Dalším konceptem, se kterým se během vyhledávání pomocí Solr setkáme, b
 Schéma receptu navrhneme dle požadavků na vlastnosti, podle kterých potřebujeme recepty vyhledávat. Zároveň zde ale patří definice všech položek, které budeme na vyhledávací stránce zobrazovat. Teoreticky bychom mohli platformu Solr využít pouze na vyhledání identifikátorů receptů na základě zadaných indexů a~ostatní informace získat z~databáze CouchDB. Tento přístup by optimalizoval množství paměti využívané systémem Solr a~odstranil poměrně výraznou duplicitu dat. Na druhou stranu by do zpracování vyhledávacích dotazů zanesl větší komplexitu a~časovou prodlevu, která by vznikla nadbytečnou komunikací s~\,CouchDB. Pokud si budeme všechny potřebné informace pro vyhledávací stránku držet v~systému Solr, bude nám stačit zpracovat pouze jeden vyhledávací dotaz pro zobrazení jedné stránky receptů. Rychlé vyhledávání je klíčovou funkcionalitou naší aplikace, proto zde upřednostníme optimalizaci časové složitosti namísto paměťové.
 
 Schéma dokumentu receptu uloženého v~Solr bude následující (jedná se pouze o~ilustrační schéma, kde typy odpovídají standardním typům dle specifikace Solr, nikoli běžně dostupným typům formátu JSON):
-
 \begin{code}
 {
     name: text_en,
@@ -185,11 +182,9 @@ Jak bylo zmíněno v~úvodní části této kapitoly, serverová část aplikace
 
 V~závislosti na zvoleném endpointu se s~dotazem obrátíme na Solr nebo \,CouchDB. Pro oba systémy vytvoříme odpovídající modely spravovaných dokumentů. U~Solr nám bude stačit model pro recepty, pro CouchDB pak definujeme modely receptů i~surovin. Model bude mít za úkol vytvořit a~uchovat spojení s~úložištěm, přičemž vytvoření instance spojení zajistí příslušná komponenta factory s~využitím návrhového vzoru singleton. Díky němu se vyhneme opětovné inicializaci spojení. Dále bude model schopen vytvořit dotazy na základě informací z~query parametrů a~prostřednictvím navázaného spojení tyto dotazy vyhodnotit nad dokumenty v~Solr nebo CouchDB. Následně přijatá data převede do formátu očekávaného na frontendu aplikace (typicky zjednoduší výchozí schéma odpovědi a~relevantní data uloží s~menší mírou zanoření). Data budou poté ve formátu JSON a~s~příslušným stavovým kódem odeslána klientovi. 
 
-\subsubsection{JSON API}
+Nyní se podíváme na konkrétní podobu API pro získání JSON dokumentů s~recepty a~ingrediencemi. Prefixem potřebným pro složení kompletní URL adresy je název domény, v~našem vývojovém prostředí \texttt{localhost:5000}.
 
-Zde soustředíme konkrétní podobu API pro získání JSON dokumentů s~recepty a~ingrediencemi. Prefixem potřebným pro složení kompletní URL adresy je název domény, v~našem vývojovém prostředí \texttt{localhost:5000}.
-
-\paragraph{Získání všech dokumentů}\mbox{}\\
+\subsubsection{Získání všech dokumentů}
 
 Dotaz na recepty využijeme v~kontextu vyhledávací obrazovky. Požadavek obohatíme o~query parametry nesoucí informace o~požadovaných ingrediencích, klíčových slovech, kategoriích a~dalších filtrech. Za normálních okolností si vyžádáme pouze omezené množství výsledků odpovídající počtu receptů na $1$~stránce. Tím získáme odpověď v~podstatně kratším čase, což se projeví dřívějším zahájením renderování výsledků vyhledávání. Chceme uživateli API umožnit nastavení vlastního limitu počtu výsledků, neboť se limit může na frontendu měnit nezávisle na zbytku aplikace. Navíc tím také usnadníme práci vývojářům, kteří by potřebovali z~naší aplikace extrahovat strukturovaná data, neboť by jim stačil výrazně menší počet požadavků. Nastavíme ovšem maximální limit na počet výsledků v~rámci $1$~požadavku, abychom zamezili situacím, kdy se uživatel API pokusí najednou získat všechna data z~naší aplikace.
 
@@ -201,7 +196,7 @@ Ingredience máme uloženy pouze v~databázi CouchDB, dotaz z~endpointu ingredie
 \end{code}
 %$
 
-\paragraph{Získání dokumentu dle id}\mbox{}\\
+\subsubsection{Získání dokumentu dle id}
 
 Požadavky směřující na následují endpointy jsou vyřizovány nalezením detailu receptu nebo ingredience v~databázi CouchDB:
 
