@@ -19,7 +19,7 @@ Co se týče výběru programovacích jazyků, přípravu dat vyřešíme pomoc�
 
 \section{Vývojové prostředí}
 
-Aplikaci budeme vyvíjet v~editoru Visual Studio Code s~rozšířeními pro jazyky JavaScript a~TypeScript. Konzistentního formátování dosáhneme zapojením rozšíření Prettier, které má na starosti správné odsazení, maximální délku řádky a~další aspekty formátování.
+Aplikaci budeme vyvíjet v~editoru Visual Studio Code s~rozšířeními pro jazyky JavaScript a~TypeScript. Konzistentního formátování dosáhneme zapojením rozšíření Prettier\footnote{https://github.com/remimarsal/prettier-now-vscode}, které má na starosti správné odsazení, maximální délku řádky a~další aspekty formátování.
 
 Projekt je verzován ve vzdáleném repozitáři na platformě GitHub pod jménem MeaLinker\footnote{https://github.com/lhotanok/MeaLinker}. Název byl sestaven spojením slov \emph{meal} a \emph{linker}, snaží se totiž zachytit myšlenku propojení receptů z různých zdrojů. Dosavadní práce probíhala pro zjednodušení ve větvi \texttt{main}. Pokud by se na projektu začalo podílet více vývojářů, byl by zaveden tradiční systém vedlejších větví pro implementaci jednotlivých funkcí a požadavků na jejich sloučení s hlavní větví.
 
@@ -81,7 +81,7 @@ Normalizované názvy ingrediencí přidáme do receptů extrahovaných Apify ac
 
 Poslední fáze patří skriptu \texttt{ingredients-postprocessing.js}, který v~adresáři \texttt{rdf-data} očekává soubor \texttt{dbpedia-ingredients.json} s~extrahovanými ingrediencemi z~grafu DBpedia a~soubor \texttt{wikidata-ingredients.json} s~přísadami z~Wikidata. Ty generuje skript \texttt{rdf-data/external-dataset-linker.js}, který potřebuje soubory ve formátu N-triples \texttt{rdf-data/food-dbpedia-same-ingr.nt} a~\texttt{rdf-data/food-wikidata-same-ingr.nt} vytvořené pomocí Silk Workbench. Konfigurace linkování extrahovaná z~grafického rozhraní Silk Workbench je uložena v XML souborech ve stejném adresáři.
 
-Výstupem našeho snažení jsou následující soubory:
+Výstupem našeho řetězce zpracování jsou následující soubory:
 
 \begin{code}
 recipes/extended_recipes.json
@@ -90,7 +90,7 @@ ingredients/search_ingredients.json
 \end{code}
 %$
 
-První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~poslední soubor najde uplatnění při tvorbě fasetových ingrediencí receptů uložených v~Solr. Skripty pro jednotlivé fáze zpracování jsou soustředěny ve skriptech \texttt{run} a \texttt{run-venv} vyžadující aktivované prostředí pro vývoj v Pythonu.
+První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~poslední soubor najde uplatnění při tvorbě fasetových ingrediencí receptů uložených v~Solr. Skripty pro jednotlivé fáze zpracování jsou soustředěny v souborech \texttt{run} a \texttt{run-venv} vyžadující aktivované prostředí pro vývoj v Pythonu.
 
 \subsection{Allrecipes}
 
@@ -266,9 +266,21 @@ const query = this.client
 %$
 \endgroup
 
+Pokud vyhledáváme podle surovin, budeme chtít získat také zvýrazněné ingredience v položce \texttt{highlighting}. Toho docílíme zavoláním metody \texttt{hl} na vytvořené query:
+\begingroup
+\samepage
+\begin{code}
+const query = simpleQuery.hl({
+  fl: "ingredients",
+  preserveMulti: true,
+});
+\end{code}
+%$
+\endgroup
 
 \section{Middleware}
 
+Úlohu přijímání požadavků klienta a jejich delegaci na modely CouchDB a Solr má na starosti tzv. Express aplikace umístěná v souboru \texttt{backend/app.ts}. Definuje podobu našeho REST API a využívá routing s vnořenými cestami. V kořenovém souboru \texttt{app.ts} definuje pouze základ adres endpointů, tedy \texttt{/api/recipes} a \texttt{/api/ingredients}. Jejich specializaci pak čte ze souborů \texttt{recipes-routes.ts} a \texttt{ingredients-routes.ts}, které exportují třídu \texttt{Router} s definovaným chováním pro různé API endpointy. Ty mají na starost extrakci id z adresy požadavku, hodnot z query parametrů, jejich předání příslušným modelům a odeslání výsledného JSON dokumentu se správným stavovým kódem zpět na zařízení klienta.
 
 \section{Single-page aplikace}
 
