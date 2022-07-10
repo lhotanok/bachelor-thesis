@@ -13,33 +13,33 @@ Před zahájením vývoje aplikace je potřeba nainstalovat všechny potřebné 
     \item Apify CLI
 \end{itemize}
 
-V~řešení využijeme také řadu knihoven, které budeme instalovat pouze v~rámci projektu pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže je lze snadno nainstalovat prostřednictvím příkazu \texttt{npm install}.
+V~řešení využijeme také řadu knihoven, které budeme instalovat pouze v~rámci projektu pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže je lze snadno nainstalovat prostřednictvím příkazu \texttt{npm install}, případně ekvivalentního \texttt{yarn install}.
 
 Co se týče výběru programovacích jazyků, přípravu dat vyřešíme pomocí vzájemně nezávislých skriptů psaných v~jazyce JavaScript. Samotnou aplikaci včetně serverové a~klientské vrstvy již napíšeme jazykem TypeScript, který je potřeba následně transpilovat do JavaScriptu. Tento dodatečný krok přidává komplexitu při spouštění kódu, proto jej vynecháme u~jednoduchých skriptů připravujících dokumenty pro databázi a~Solr. Zároveň ale přináší typovou kontrolu, kterou velmi oceníme v~komplexnější aplikaci a~to zejména při práci s~externími knihovnami, jejichž rozhraní není vždy perfektně zdokumentováno.
 
 \section{Vývojové prostředí}
 
-Aplikaci budeme vyvíjet v~editoru Visual Studio Code s~rozšířeními pro jazyky JavaScript a~TypeScript. Konzistentního formátování dosáhneme zapojením rozšíření Prettier\footnote{https://github.com/remimarsal/prettier-now-vscode}, které má na starosti správné odsazení, maximální délku řádky a~další aspekty formátování.
+Aplikaci budeme vyvíjet v~editoru Visual Studio Code. Konzistentního formátování dosáhneme zapojením rozšíření Prettier\footnote{https://github.com/remimarsal/prettier-now-vscode}, které má na starosti správné odsazení, maximální délku řádky a~další aspekty formátování.
 
-Projekt je verzován ve vzdáleném repozitáři na platformě GitHub pod jménem MeaLinker\footnote{https://github.com/lhotanok/MeaLinker}. Název byl sestaven spojením slov \emph{meal} a \emph{linker}, snaží se totiž zachytit myšlenku propojení receptů z různých zdrojů. Dosavadní práce probíhala pro zjednodušení ve větvi \texttt{main}. Pokud by se na projektu začalo podílet více vývojářů, byl by zaveden tradiční systém vedlejších větví pro implementaci jednotlivých funkcí a požadavků na jejich sloučení s hlavní větví.
+Projekt je verzován ve vzdáleném repozitáři na platformě GitHub pod jménem MeaLinker\footnote{https://github.com/lhotanok/MeaLinker}. Název byl sestaven spojením slov \emph{meal} a~\emph{linker}, snaží se totiž zachytit myšlenku propojení receptů z~různých zdrojů. Dosavadní práce probíhala pro zjednodušení ve větvi \texttt{main}. Pokud by se na projektu začalo podílet více vývojářů, byl by zaveden tradiční systém vedlejších větví pro implementaci jednotlivých funkcí a~požadavků na jejich sloučení s~hlavní větví.
 
 \section{Zpracování vstupních dat}
 
 Jak jsme již zmínili v~části o~architektuře aplikace, data k~receptům získáme primárně pomocí vlastní extrakce dat. Pro dataset z~webové aplikace Food.com využijeme i~statická data z~platformy Kaggle, kterými rozšíříme extrahované informace. Data k~ingrediencím ze znalostních grafů DBpedia a~Wikidata získáme rovněž automatizovaným postupem skrze zpracování HTTP požadavků.
 
-Jako zdroj receptů jsme si zvolili webové aplikace Food.com a~Allrecipes. Pro každou z nich vytvoříme dedikovaný extraktor s~využitím knihovny Apify. Nejprve se podíváme na řešení pro aplikaci Food.com, u~které nás na rozdíl od stránky Allrecipes čeká dodatečná fáze sloučení informací ze statického datasetu.
+Jako zdroje receptů jsme si zvolili webové aplikace Food.com a~Allrecipes. Pro každou z~nich vytvoříme dedikovaný extraktor s~využitím knihovny Apify. Nejprve se podíváme na řešení pro aplikaci Food.com, u~které nás na rozdíl od stránky Allrecipes čeká dodatečná fáze sloučení informací ze statického datasetu.
 
 \subsection{Food.com}
 
 Propojení dat se statickým datasetem Food.com Recipes and~Interactions nám do projektu zanese poměrně velkou komplexitu ve srovnání s~pouhou extrakcí dat z~webové aplikace, kterou využijeme u~stránky Allrecipes. Pro zpracování dat z~aplikace Food.com nemůžeme využít stejný přístup jako s~Allrecipes, protože neposkytuje plně strukturované ingredience (odděluje pouze množství od ostatního textu). Výrazná výhoda zpracování dat z~Food.com je v~jejich kvantitě, která s~více než $500\,000$ recepty $10\times$ převyšuje aplikaci Allrecipes a~tvoří polovinu obsahu největšího datasetu s~recepty Recipe1M+. Také poskytuje detailní informace přibližně k~$900$ ingrediencím na adrese \texttt{food.com/about}. Tyto data sice extrahovat nebudeme, počet ingrediencí s~detaily je pro nás ale užitečným vodítkem z~pohledu propojení s~otevřenými daty surovin.
 
-Dataset Food.com Recipes and~Interactions obsahuje kolem $8000$ unikátních ingrediencí extrahovaných a~normalizovaných přímo z~jednotlivých receptů. Tyto normalizované ingredience budou po čištění velmi dobrým podkladem pro fasetový našeptávač ingrediencí na vyhledávací stránce. Využijeme je pro vyhledávání receptů z~libovolných zdrojů. Bez nich bychom našeptávač ingrediencí museli vytvořit ze jmen surovin z~jiných stránek, například Allrecipes. Případně bychom mohli využít externí seznam ingrediencí, ať už z~aplikace Food.com nebo z~otevřených znalostních grafů. Počet navrhovaných přísad by ale byl výrazně menší.
+Dataset Food.com Recipes and~Interactions obsahuje kolem $8\,000$ unikátních ingrediencí extrahovaných a~normalizovaných přímo z~jednotlivých receptů. Tyto normalizované ingredience budou po čištění velmi dobrým podkladem pro fasetový našeptávač ingrediencí na vyhledávací stránce. Využijeme je pro vyhledávání receptů z~libovolných zdrojů. Alternativně bychom mohli využít externí seznam ingrediencí, ať už z~aplikace Food.com nebo z~otevřených znalostních grafů. Počet navrhovaných přísad by ale byl výrazně menší.
 
 \subsubsection{Extrakce dat}
 
-Všechny skripty pro přípravu dat z~Food.com jsou soustředěny v~adresáři \texttt{data/resources/foodcom}. V~této sekci budeme při uvádění cesty pro zjednodušení předpokládat, že se nacházíme uvnitř \texttt{data/resources/foodcom}. Samotná extrakce dat je umístěna v podadresáři \texttt{food-com-scraper}, jehož struktura odpovídá standardnímu Apify actorovi, kterého jsme představili v~předchozí kapitole. Pro vytvoření této struktury lze využít příkaz \texttt{apify\,create}, který uživatele provede možnostmi různých šablon. My zvolíme šablonu pro tzv. \texttt{CheerioCrawler}, což je v~knihovně Apify řešení využívající pouze HTTP požadavky a~parsování HTML z~odpovědi. Pokud bychom potřebovali automatizaci webového prohlížeče, použili bychom šablonu \texttt{PuppeteerCrawler}, případně \texttt{PlaywrightCrawler}. Šablony jsou pojmenovány podle klíčových technologií, tedy knihovny Cheerio pro extrakci dat z~HTML a~knihoven Puppeteer či Playwright poskytujících rozhraní pro automatizaci prohlížeče.
+Skripty pro přípravu dat z~aplikace Food.com jsou soustředěny v~adresáři \texttt{data/resources/foodcom}. Samotná logika extrakce dat je umístěna v podadresáři \texttt{food-com-scraper}, jehož struktura odpovídá standardnímu Apify actorovi představenému v~předchozí kapitole. Pro vytvoření této struktury lze využít příkaz \texttt{apify\,create}, který uživatele provede možnostmi různých šablon. My zvolíme šablonu pro tzv. \texttt{CheerioCrawler}, což je v~knihovně Apify řešení využívající HTTP požadavky a~parsování HTML z~odpovědi. Pokud bychom potřebovali automatizaci webového prohlížeče, použili bychom šablonu \texttt{PuppeteerCrawler}, případně \texttt{PlaywrightCrawler}. Šablony jsou pojmenovány podle klíčových technologií, tedy knihovny Cheerio pro extrakci dat z~HTML a~knihoven Puppeteer či Playwright poskytujících rozhraní pro automatizaci prohlížeče.
 
-Pokud bychom adresář s~Apify actorem například naklonovali ze vzdáleného adresáře na platformě GitHub, stačilo by jej inicializovat příkazem \texttt{apify\,init}. Zároveň se jedná o~standardní Node.js projekt, pro instalaci potřebných knihoven tedy musíme spustit příkaz \texttt{npm\,install} nebo ekvivalentní \texttt{yarn\,install}. Po inicializaci se vytvoří důležitý adresář \texttt{apify\underline{{ }}storage} s~podadresáři \texttt{datasets} a~\texttt{key\underline{{ }}value\underline{{ }}stores}.
+Pokud bychom adresář s~Apify actorem například naklonovali ze vzdáleného adresáře na platformě GitHub, stačilo by jej inicializovat příkazem \texttt{apify\,init}. Zároveň se jedná o~standardní Node.js projekt, musíme tedy nainstalovat všechny závislosti uvedené v~souboru \texttt{package.json}. Po inicializaci se vytvoří důležitý adresář \texttt{apify\underline{{ }}storage} s~podadresáři \texttt{datasets} a~\texttt{key\underline{{ }}value\underline{{ }}stores}.
 
 Do adresáře \texttt{datasets} se typicky ukládají JSON soubory s~jednotlivými položkami datasetu, v~našem případě recepty. Na cloudové platformě Apify se pak tyto soubory sloučí do společného datasetu, který lze stáhnout v~řadě různých formátů, z~nichž nejčastěji využívané jsou formáty JSON a~CSV. Naše řešení bude ale určeno pouze pro lokální vývoj, pro zjednodušení tedy budeme výsledky ukládat přímo sloučené do adresáře \texttt{key\underline{{ }}value\underline{{ }}stores/default} pod klíčem \texttt{RECIPES}. Zároveň zde pod klíčem \texttt{INPUT} najdeme další důležitý soubor se vstupem pro actora. Ten bude obsahovat objekt s~jedinou položkou \texttt{startUrls} v~následujícím formátu:
 
@@ -57,11 +57,11 @@ Do adresáře \texttt{datasets} se typicky ukládají JSON soubory s~jednotlivý
 \end{code}
 %$
 
-Vstup bude vygenerován do \texttt{key\underline{{ }}value\underline{{ }}stores/default/INPUT.json} pomocí skriptu \texttt{recipe-urls-generator.js} z~adresáře \texttt{foodcom}, který URL adresy složí z~identifikátorů receptů. Před spuštěním tohoto skriptu je potřeba mít staženy soubory \texttt{recipes/RAW\underline{{ }}recipes.csv} a~\texttt{recipes/PP\underline{{ }}recipes.csv} z~datasetu Food.com Recipes and~Interactions\footnote{https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions} a~dokončen \texttt{recipes-preprocessing.js}. Přes proměnnou \texttt{RECIPES\underline{{ }}TO\underline{{ }}EXTRACT} uvnitř \texttt{constants.js} lze omezit počet receptů, které se mají extrahovat.
+Vstup bude vygenerován do \texttt{key\underline{{ }}value\underline{{ }}stores/defalut/INPUT.json} pomocí skriptu \texttt{recipe-urls-generator.js} z~adresáře \texttt{foodcom}, který URL adresy složí z~identifikátorů receptů. Před spuštěním tohoto skriptu je potřeba mít staženy soubory \texttt{recipes/RAW\underline{{ }}recipes.csv} a~\texttt{recipes/PP\underline{{ }}recipes.csv} z~datasetu Food.com Recipes and~Interactions\footnote{https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions} a~dokončen \texttt{recipes-preprocessing.js}. Přes proměnnou \texttt{RECIPES\underline{{ }}TO\underline{{ }}EXTRACT} uvnitř \texttt{constants.js} lze omezit počet receptů, které se mají extrahovat.
 
 Kód Apify actora je typicky soustředěn v~adresáři \texttt{src}. Klíčové jsou soubory \texttt{main.js} s~inicializací (v našem případě třídy \texttt{CheerioCrawler}) a~\texttt{routes.js} s~funkcemi pro zpracování různých typů obrazovek. Obvykle je potřeba definovat chování pro stránku typu \texttt{LIST}, ze které jsou získány odkazy na detaily nalezených výsledků, a~pro stránku \texttt{DETAIL}, kde jsou extrahována a~uložena data jednotlivých výsledků. Naše řešení pro aplikaci Food.com zpracovává pouze detaily receptů, které obdrží na vstupu. Stačí tedy implementovat funkci \texttt{handleDetail}, která pomocí CSS selektoru \texttt{script[type="application/ld+json"]} zacílí JSON-LD data z~hlavičky HTML dokumentu, vybranou část z~nich převede do strukturované podoby a~nově zkonstruovaný recept přidá do souboru \texttt{RECIPES.json}.
 
-Konstruktor třídy \texttt{CheerioCrawler} přijímá $1$ parametr s~možnostmi konfigurace. Prostřednictvím položky \texttt{proxyConfiguration} lze volitelně aktivovat rotování IP adres, které chrání naši vlastní IP adresu před dočasným či dokonce trvalým zablokováním a~zlepšuje poměr úspěšných požadavků. Vzhledem k~obecně nižší míře blokování ze strany aplikací s~recepty by využití proxy nemělo být nutné, je ale vhodné. Počet současně odesílaných požadavků omezíme na doporučenou hranici $50$ požadavků, abychom zamezili přetížení zpracovávané webové aplikace. Actora spustíme příkazem \texttt{apify\,run\,-p}. Příznak \texttt{-p} je zkratkou pro \emph{purge} a~zajišťuje korektní vyčištění předchozího stavu.
+Konstruktor třídy \texttt{CheerioCrawler} přijímá $1$ parametr s~možnostmi konfigurace. Prostřednictvím položky \texttt{proxyConfiguration} lze volitelně aktivovat rotování IP adres, které chrání naši vlastní IP adresu před dočasným či dokonce trvalým zablokováním a~zlepšuje poměr úspěšných požadavků. Vzhledem k~obecně nižší míře blokování ze strany aplikací s~recepty by využití proxy nemělo být nutné, je ale vhodné. Pro využití automatické proxy je potřeba přihlášení do Apify účtu s~dostupnými proxy adresami. Také lze poskytnout vlastní proxy. Počet současně odesílaných požadavků omezíme na doporučenou hranici $50$ požadavků, abychom zamezili přetížení zpracovávané webové aplikace. Actora spustíme příkazem \texttt{apify\,run\,-p}. Příznak \texttt{-p} je zkratkou pro \emph{purge} a~zajišťuje korektní vyčištění předchozího stavu.
 
 \subsubsection{Propojení dat}
 
@@ -90,19 +90,15 @@ ingredients/search_ingredients.json
 \end{code}
 %$
 
-První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~poslední soubor najde uplatnění při tvorbě fasetových ingrediencí receptů uložených v~Solr. Skripty pro jednotlivé fáze zpracování jsou soustředěny v souborech \texttt{run} a \texttt{run-venv} vyžadující aktivované prostředí pro vývoj v Pythonu.
+První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~poslední soubor najde uplatnění při tvorbě fasetových ingrediencí receptů uložených v~Solr. Skripty pro jednotlivé fáze zpracování jsou soustředěny v souborech \texttt{run} a \texttt{run-venv} vyžadující aktivované prostředí pro vývoj v~Pythonu.
 
 \subsection{Allrecipes}
 
-Pomocí vlastní extrakce dat získáme kompletní sadu receptů z webové aplikace Allrecipes. Vyřadíme pouze recepty, které neobsahují informace o nutričních hodnotách.
+Pomocí vlastní extrakce dat získáme kompletní sadu receptů z~webové aplikace Allrecipes. Vyřadíme pouze recepty, které neobsahují informace o~nutričních hodnotách. Základní struktura actora pro extrakci dat z~Allrecipes bude podobná jako u~Food.com v~předchozí sekci. Speciálně zpracování stránek s~detaily receptů bude téměř identické, pouze využijeme dodatečné informace k~ingrediencím obsažené v~HTML elementech a~uložíme je na pozici strukturovaných ingrediencí. Mezi actory ale bude podstatný rozdíl v~získání odkazů na jednotlivé recepty. Actor pro Allrecipes nebude URL adresy přijímat na vstupu a namísto toho si je vyrobí sám. Má více způsobů, jak k~extrakci přistoupit. My se podíváme na extrakci prostřednictvím interního API z~vyhledávací stránky receptů a~na typický přístup procházení jednotlivých kategorií.
 
-\subsubsection{Extrakce dat}
+\subsubsection{Interní API}
 
-Základní struktura actora pro extrakci dat z webové aplikace Allrecipes bude podobná jako u Food.com v předchozí sekci. Speciálně zpracování stránek s detaily receptů bude téměř identické, pouze využijeme dodatečné informace k ingrediencím obsažené v HTML elementech a uložíme je na pozici strukturovaných ingrediencí. Mezi actory ale bude podstatný rozdíl v získání odkazů na jednotlivé recepty. Actor pro Allrecipes nebude URL adresy přijímat na vstupu a namísto toho si je vyrobí sám. Má více způsobů, jak k extrakci přistoupit. My se podíváme na extrakci prostřednictvím interního API z vyhledávací stránky receptů a na typický přístup procházení jednotlivých kategorií.
-
-\paragraph{Interní API}\mbox{}\\
-
-Při vyhledávání receptů na základě filtrů můžeme přes vývojářské nástroje webového prohlížeče odchytit požadavek v následujícím formátu:
+Při vyhledávání receptů na základě filtrů můžeme přes vývojářské nástroje webového prohlížeče odchytit požadavek v~následujícím formátu:
 
 \begin{code}
 /element-api/content-proxy/faceted-searches-load-more?page=1
@@ -118,38 +114,43 @@ Formát odpovědi na tento požadavek je následující:
 \end{code}
 %$
 
-Ze znalosti hodnoty {totalResults} a počtu výsledků na 1 stránce bychom měli být schopni předem určit, kolik stran budeme procházet. V době psaní této práce je inzerovaný počet výsledků uložený v položce \texttt{totalResults} roven $55\,680$. Poslední stranou při číslování od $1$~by tedy měla být strana $2\,320$. Při manuální kontrole lze ale zjistit, že poslední výsledky jsou na straně $417$, kde je zároveň uloženo \texttt{hasNext:\,false}.
+Ze znalosti hodnoty {totalResults} a~počtu výsledků na $1$~stránce bychom měli být schopni předem určit, kolik stran budeme procházet. V~době psaní této práce je inzerovaný počet výsledků uložený v~položce \texttt{totalResults} roven $55\,680$. Poslední stranou při číslování od $1$~by tedy měla být strana $2\,320$. Při manuální kontrole lze ale zjistit, že poslední výsledky jsou na straně $417$, kde je zároveň uloženo \texttt{hasNext:\,false}.
 
-Lze tedy předpokládat, že pokud na Allrecipes zadáme prázdnou množinu filtrů a prolistujeme všechny výsledky, neuvidíme inzerovaných $55\,680$ výsledků, ale pouze $(416 \cdot 24) + 16 = 10\,000$ receptů. Při podrobnějším zkoumání vypozorujeme, že aplikace Allrecipes používá maximální limit $10\,000$ výsledků i při zadání filtrů (například po přidání soli jakožto vyhledávací ingredience se celkový počet výsledků snížil na necelých $40\,000$ a poslední stranou výsledků je opět strana $417$. Pokud se tedy nespokojíme s $10\,000$ recepty, budeme muset přistoupit na řešení procházející jednotlivé kategorie receptů.
+Lze tedy předpokládat, že pokud na Allrecipes zadáme prázdnou množinu filtrů a~prolistujeme všechny výsledky, neuvidíme inzerovaných $55\,680$ receptů, ale pouhých $(416 \cdot 24) + 16 = 10\,000$. Při podrobnějším zkoumání vypozorujeme, že aplikace Allrecipes používá maximální limit $10\,000$ výsledků i~při zadání filtrů (například po přidání soli jakožto vyhledávací ingredience se celkový počet výsledků snížil na necelých $40\,000$ a~poslední stranou výsledků je opět strana $417$. Pokud se tedy nespokojíme s $10\,000$ recepty, budeme muset přistoupit na řešení procházející jednotlivé kategorie receptů.
 
-\paragraph{Kategorie receptů}\mbox{}\\
+\subsubsection{Kategorie receptů}
 
-Odkazy na kategorie je možné získat ze stránky s relativní adresou \texttt{/recipes} přes CSS selektor třídy \texttt{recipeCarousel\underline{{ }{ }}link}. Kategorie pak můžeme procházet po stranách, stačí přidat query parametr \texttt{page}. Příklad relativní adresy pro $10$. stránku kategorie hlavních chodů: \texttt{/recipes/80/main-dish/?page=10}. Tento formát lze objevit při prozkoumání atributů tlačítka \texttt{Load\,more} na domovské stránce kategorie. Zda jsme již dorazili na poslední stranu poznáme podle obsahu elementu \texttt{h1}, ve kterém se na stránce bez receptů objeví hlášení \texttt{Page\,Not\,Found}.
+Odkazy na kategorie je možné získat ze stránky s~relativní adresou \texttt{/recipes} přes CSS selektor třídy \texttt{recipeCarousel\underline{{ }{ }}link}. Kategorie pak můžeme procházet po stranách, stačí přidat query parametr \texttt{page}. Příklad relativní adresy pro $10$. stránku kategorie hlavních chodů: \texttt{/recipes/80/main-dish/?page=10}. Tento formát lze objevit při prozkoumání atributů tlačítka \texttt{Load\,more} na domovské stránce kategorie. Zda jsme již dorazili na poslední stranu poznáme podle obsahu elementu \texttt{h1}, ve kterém se na stránce bez receptů objeví hlášení \texttt{Page\,Not\,Found}.
 
-Stránky kategorií budou v kontextu Apify actora odpovídat stránkám typu \texttt{LIST}. V rámci zpracování stránky kategorie musíme do fronty požadavků zařadit odkaz na další stranu (pokud již nejsme na poslední straně bez výsledků) a zároveň URL adresy detailů receptů. Fronta je oboustranná, můžeme tedy adresy s detaily receptů zařadit na začátek, aby se zpracovaly přednostně a měli jsme dříve k dispozici výsledky, neboť se průběžně ukládají do souboru \texttt{key\underline{{ }}value\underline{{ }}stores/default/RECIPES.json}.
+Stránky kategorií budou v~kontextu Apify actora odpovídat stránkám typu \texttt{LIST}. V~rámci zpracování stránky kategorie musíme do fronty požadavků zařadit odkaz na další stranu a~zároveň URL adresy detailů receptů. Fronta je oboustranná, můžeme tedy adresy s~detaily receptů zařadit na začátek, aby se zpracovaly přednostně a~měli jsme dříve k~dispozici výsledky. Recepty se totiž průběžně ukládají do souboru \texttt{key\underline{{ }}value\underline{{ }}stores/default/RECIPES.json}.
 
-Během extrakce dat ze stránek detailů receptů se musíme vypořádat s několika problémy. Aplikace Allrecipes není zcela konzistentní v mapování ingrediencí na atributy v HTML a střídá $2$ atributy pro jméno ingredience, které vidí uživatel, a název ingredience pro vyhledávání. Musíme tedy explicitně zkontrolovat, že pod položkou \texttt{text} ukládáme skutečně text, který je zobrazen bezprostředně po jednotce měření. Také narazíme na část receptů bez uvedených nutričních hodnot. Tyto recepty přeskočíme, neboť je pro nás informace o nutričních hodnotách důležitá.
+Během extrakce dat ze stránek detailů receptů se musíme vypořádat s~několika problémy. Aplikace Allrecipes není zcela konzistentní v~mapování ingrediencí na atributy v~HTML a~střídá obsah $2$~atributů souvisejících se jménem ingredience. Tyto atributy vyjadřují:
+\begin{itemize}
+    \item Jméno ingredience zobrazované uživateli.
+    \item Název ingredience určený pro vyhledávání.
+\end{itemize}
+Musíme tedy explicitně zkontrolovat, že pod položkou \texttt{text} ukládáme skutečně text, který je uživateli zobrazen bezprostředně po jednotce měření. Také narazíme na část receptů bez uvedených nutričních hodnot. Tyto recepty přeskočíme, neboť je pro nás informace o~nutričních hodnotách důležitá.
 
 \subsubsection{Propojení dat}
 
-U datasetu z Allrecipes máme zjednodušenou práci, neboť strukturované ingredience máme již k dispozici z fáze extrakce receptů. Stačí nám tedy získat unikátní jména ingrediencí z extrahovaných receptů, z těchto ingrediencí vytvořit RDF dataset pro linkování s grafy DBpedia a Wikidata a extrahované informace propojit s dokumenty receptů. Postup je analogický jako s unikátními ingrediencemi z Food.com datasetu. 
+U~datasetu z~Allrecipes máme zjednodušenou práci, neboť strukturované ingredience máme již k~dispozici z~fáze extrakce receptů. Stačí nám tedy získat unikátní jména ingrediencí z~extrahovaných receptů, z~těchto ingrediencí vytvořit RDF dataset pro linkování s~grafy DBpedia a~Wikidata a~extrahované informace propojit s~dokumenty receptů. Postup je analogický jako s~unikátními ingrediencemi z~Food.com datasetu. 
 
-Ingrediencím potřebujeme přiřadit identifikátor a ideálně se budeme snažit vyhnout duplicitě s ingrediencemi z Food.com, až je budeme ukládat do databáze spolu s rozšířením z DBpedia a Wikidata. Vygenerujeme si tedy uuid pro celou naši aplikaci, které budeme využívat jako tzv. \emph{seed} pro vytvoření dalších identifikátorů. Zde se nám bude hodit knihovna \texttt{uuid}\footnote{https://www.npmjs.com/package/uuid} a její funkce \texttt{v5}:
+Ingrediencím potřebujeme přiřadit identifikátor a~ideálně se budeme snažit vyhnout duplicitě s~ingrediencemi z~Food.com, až je budeme ukládat do databáze spolu s~rozšířením z~DBpedia a~Wikidata. Vygenerujeme si tedy uuid pro celou naši aplikaci, které budeme využívat jako tzv.~\emph{seed} pro vytvoření dalších identifikátorů. Zde se nám bude hodit knihovna \texttt{uuid}\footnote{https://www.npmjs.com/package/uuid} a~její funkce \texttt{v5}:
 \begin{code}
-uuid.v5(name, NAMESPACE_UUID)}
+uuid.v5(name.toLowerCase(), NAMESPACE_UUID)}
 \end{code}
 %$
-Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se na stejné uuid a vyhneme se duplicitě. Jména pro tento účel vždy převedeme do lowercase formátu.
+Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se na stejné uuid a vyhneme se duplicitě.
 
 \subsection{Linkování se znalostními grafy}
 
-Pro nalezení linků mezi ingrediencemi z našich datasetů a entitami z DBpedia a Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou pro Food.com i Allrecipes v adresáři \texttt{rdf-data}.
+Pro nalezení linků mezi ingrediencemi z~našich datasetů a~entitami z~DBpedia a~Wikidata využijeme nástroj Silk Workbench, pomocí kterého vytvoříme RDF tvrzení s~IRI adresami ingrediencí spojenými vztahem \texttt{owl:sameAs}. V~rámci úlohy linkování navrhneme transformaci textu ingrediencí, která dokáže názvy propojit i~s~mírnými odlišnostmi ve formátu, čísle nebo pádu slov. Grafické znázornění jednotlivých fází transformace viz \ref{obr0a:silk-workbench}, příslušné XML soubory pro spuštění přes příkazovou řádku jsou pro Food.com i~Allrecipes v~adresáři \texttt{rdf-data}.
 
 \subsection{DBpedia}
 
-Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v adresáři \texttt{data/resources/dbpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale v~závislosti na počtu nalezených spojení mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
+Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v~adresáři \texttt{data/resources/dbpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
 
-Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Šablona dotazu konstruujícího RDF graf je umístěná v souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou vloženy pomocí regulárních výrazů do množiny tzv. \texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
+Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Šablona dotazu konstruujícího RDF graf je umístěná v~souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou pomocí regulárních výrazů vkládány do množiny tzv.~\texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
 
 \begin{code}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -187,65 +188,65 @@ Výsledky si navíc od SPARQL endpointu můžeme vyžádat v~řadě různých fo
 
 \subsection{Wikidata}
 
-Proces extrakce dat z grafu Wikidata bude probíhat analogicky k~postupu pro DBpedia z předchozího odstavce. I~zde využijeme HTTP GET požadavky na SPARQL endpoint, kde prostřednictvím query parametrů předáme obsah dotazu a~požadovaný formát výsledku. Projekt Wikidata neposkytuje reprezentaci JSON-LD, vystačíme si ale s~běžným JSON formátem, který lze vyžádat přes hodnotu query parametru \texttt{format} nastavenou na \texttt{json}. Z~této reprezentace pak sami vytvoříme odpovídající JSON-LD formát, který je vhodný pro strukturovaná data v~hlavičce HTML dokumentu.
+Proces extrakce dat z~grafu Wikidata bude probíhat analogicky k~postupu pro DBpedia z~předchozího odstavce. I~zde využijeme HTTP GET požadavky na SPARQL endpoint, kde prostřednictvím query parametrů předáme obsah dotazu a~požadovaný formát výsledku. Projekt Wikidata neposkytuje reprezentaci JSON-LD, vystačíme si ale s~běžným JSON formátem, který lze vyžádat přes hodnotu query parametru \texttt{format} nastavenou na \texttt{json}. Z~této reprezentace pak sami vytvoříme odpovídající JSON-LD formát, který je vhodný pro strukturovaná data v~hlavičce HTML dokumentu.
 
-Související soubory jsou uloženy v destinaci: \texttt{data/resources/wikidata}. Obsažený skript je opět volán pouze externě na základě extrahovaných ingrediencí z datasetů Food.com a Allrecipes. 
+Související soubory jsou uloženy v~destinaci: \texttt{data/resources/wikidata}. Obsažený skript je opět volán pouze externě na základě extrahovaných ingrediencí z~datasetů Food.com a~Allrecipes. 
 
 \section{Databáze Apache CouchDB}
 
-Pro uložení dat jsme vybrali dokumentový databázový systém CouchDB z důvodů popsaných v kapitole o architektuře aplikace.  S~CouchDB můžeme komunikovat přes webové rozhraní skrze aplikaci Fauxton, pomocí REST~API nebo prostřednictvím již zmíněné knihovny v~prostředí Node.js. Pro automatizované nahrávání dokumentů využijeme oficiální knihovnu Nano\footnote{https://www.npmjs.com/package/nano}.
+Pro uložení dat jsme vybrali dokumentový databázový systém CouchDB z~důvodů popsaných v~kapitole o~architektuře aplikace.  S~CouchDB můžeme komunikovat přes webové rozhraní skrze aplikaci Fauxton, pomocí REST~API nebo prostřednictvím již zmíněné knihovny v~prostředí Node.js. Pro automatizované nahrávání dokumentů využijeme oficiální knihovnu Nano\footnote{https://www.npmjs.com/package/nano}.
 
 S~velikostí našeho projektu si můžeme dovolit při nahrávání nových dat nejprve stávající data odstranit a~poté je vložit do čisté databáze. Kdybychom totiž chtěli dokumenty aktualizovat, potřebovali bychom u~každého z~nich poskytnout aktuální verzi, což by pro přepsání celé databáze byl zbytečně komplikovaný postup. S~rostoucím počtem dokumentů bychom ale nejspíše museli přistoupit na aktualizaci dat namísto jejich odstraňování a~opětovného nahrávání, neboť již pro přidání kolekce o~velikosti $50\,000$ dokumentů se pohybujeme v~řádu delších minut.
 
-S knihovnou Nano pracujeme na $2$ místech projektu. Poprvé v rámci přípravy a nahrání dat do CouchDB, podruhé na backendu aplikace pro získání uložených dokumentů na základě identifikátorů. Oba přístupy do databáze vyžadují přihlašovací heslo --- uložíme jej jako proměnnou prostředí, ke které se v kódu dostaneme přes rozhraní \texttt{process.env}. Instanci CouchDB spustíme na výchozím portu $5984$.
+S~knihovnou Nano pracujeme na $2$~místech projektu. Poprvé v~rámci přípravy a~nahrání dat do CouchDB, podruhé na backendu aplikace pro získání uložených dokumentů na základě identifikátorů. Oba přístupy do databáze vyžadují přihlašovací heslo --- uložíme jej jako proměnnou prostředí, ke které se v~kódu dostaneme přes rozhraní \texttt{process.env}. Instanci CouchDB spustíme na výchozím portu $5984$.
 
 \subsection{Vložení dokumentů}
 
-Nahrávání dokumentů zajišťuje skript \texttt{database-manager.mjs} umístěný v adresáři \texttt{data/database}. Před uložením dokumentů do databáze jsou všechny řetězce obsažené v jednotlivých objektech receptů a ingrediencí dekódovány pomocí funkcí \texttt{decode} a \texttt{unescape}.
+Nahrávání dokumentů zajišťuje skript \texttt{database-manager.mjs} umístěný v~adresáři \texttt{data/database}. Před uložením dokumentů do databáze jsou všechny řetězce obsažené v~jednotlivých objektech receptů a~ingrediencí dekódovány pomocí funkcí \texttt{decode} a~\texttt{unescape} z~knihoven \texttt{html-entities} a~\texttt{html-escaper}.
 
-\subsection{Přístup k dokumentům}
+\subsection{Přístup k~dokumentům}
 
-Kód pro hledání dokumentů receptů a ingrediencí dle zadaného id je soustředěn v adresáři \texttt{app/backend/src/couchdb}. Dokumenty jsou rozděleny do databází, respektive kolekcí \texttt{recipes} a \texttt{ingredients}. Adresář \texttt{types} obsahuje definice, které potřebujeme pro typovou podporu jazyka TypeScript a odpovídajícího IntelliSense. Schéma dokumentů není pevně definováno, takže typy slouží spíše pro naši kontrolu a případné logování. A to zejména na backendu aplikace, kde s jednotlivými položkami objektů většinou nepotřebujeme dále pracovat a nezměněný objekt odesíláme na frontend. Stejnou kolekci typů definujeme zvlášť na backendu i frontendu, neboť by jejich adresáře teoreticky mohly být uloženy na různých zařízeních a tudíž by na sobě neměly být závislé. Pokud by nám vzájemná závislost nevadila, stačilo by vytvořit typy pouze jednou v kořenovém adresáři \texttt{app}, do kterého mají přístup obě části aplikace. Aktuálně se v kontextu databáze jedná o typy \texttt{FullRecipe}, \texttt{FullIngredient}, \texttt{RecipeJsonld} a řadu vnořených typů, například \texttt{RecipeIngredient}, \texttt{RecipeNutrition}, \texttt{PrepTime} nebo \texttt{Author}. 
+Kód pro hledání dokumentů receptů a~ingrediencí dle zadaného id je soustředěn v~adresáři \texttt{app/backend/src/couchdb}. Dokumenty jsou rozděleny do databází, respektive kolekcí \texttt{recipes} a~\texttt{ingredients}. Adresář \texttt{types} obsahuje definice, které potřebujeme pro typovou podporu jazyka TypeScript a~odpovídajícího IntelliSense. Schéma dokumentů není pevně definováno, takže typy slouží spíše pro naši kontrolu a~případné logování. Zejména na backendu aplikace, kde s~jednotlivými položkami objektů většinou nepotřebujeme dále pracovat a~nezměněný objekt odesíláme na frontend. Stejnou kolekci typů definujeme zvlášť na backendu i~frontendu, neboť by jejich adresáře teoreticky mohly být uloženy na různých zařízeních a~tudíž by na sobě neměly být závislé. Pokud by nám vzájemná závislost nevadila, stačilo by vytvořit typy pouze jednou v~kořenovém adresáři \texttt{app}, do kterého mají přístup obě části aplikace. Aktuálně se v~kontextu databáze jedná o~typy \texttt{FullRecipe}, \texttt{FullIngredient}, \texttt{RecipeJsonld} a~řadu vnořených typů, například \texttt{RecipeIngredient}, \texttt{RecipeNutrition}, \texttt{PrepTime} nebo \texttt{Author}. 
 
-Spojení s databází inicializujeme pouze jednou, což zaručíme zapojením třídy \texttt{NanoDbFactory} a konceptu návrhového vzoru singleton. Odkaz na spojení s databází si vždy vyžádáme od \texttt{NanoDbFactory}, která si drží statický slovník kolekcí dle jména, v našem případě \texttt{recipes} a \texttt{ingredients}. Pokud už má pro dané jméno spojení navázáno, nevytváří jej znova a vrátí odkaz na hodnotu ze slovníku. Se třídou \texttt{NanoDbFactory} komunikují modely dokumentů receptů a ingrediencí, tedy třídy \texttt{CouchDbRecipesModel} a \texttt{CouchDbIngredientsModel}. Pro každý zpracovávaný požadavek ze strany klienta se tak vytváří nová instance modelu, ale nikoli nové spojení s databází.
+Spojení s~databází inicializujeme pouze jednou, což zaručíme zapojením třídy \texttt{NanoDbFactory} a~konceptu návrhového vzoru singleton. Odkaz na spojení s~databází si vždy vyžádáme od \texttt{NanoDbFactory}, která spravuje statický slovník spojení dle jména kolekce, v~našem případě \texttt{recipes} a~\texttt{ingredients}. Pokud už má pro dané jméno spojení navázáno, nevytváří jej znova a~vrátí odkaz na hodnotu ze slovníku. Se třídou \texttt{NanoDbFactory} komunikují modely dokumentů receptů a~ingrediencí, tedy třídy \texttt{CouchDbRecipesModel} a~\texttt{CouchDbIngredientsModel}. Pro každý zpracovávaný požadavek ze strany klienta se tak vytváří nová instance modelu, ale nikoli nové spojení s~databází.
 
 \section{Vyhledávání pomocí Apache Solr}
 
-Stejně jako u práce s databází můžeme komunikaci se Solr rozdělit do $2$ fází:
+Stejně jako u~práce s~databází můžeme komunikaci se Solr rozdělit do $2$~fází:
 \begin{itemize}
     \item Příprava dokumentů.
     \item Zpracování dotazů nad dokumenty.
 \end{itemize}
 
-V obou fázích využijeme knihovnu Solr client\footnote{https://www.npmjs.com/package/solr-client}, která implementuje veškerou komunikaci se Solr potřebnou pro splnění požadavků aplikace. S platformou Solr bychom se dorozuměli i prostřednictvím základního REST API, což využijeme při tvorbě schématu. Pro vkládání dokumentů a dotazování se nad nimi je ovšem pohodlnější pracovat s více high-level rozhraním, což nám umožní právě zmíněná knihovna.
+V~obou fázích využijeme knihovnu Solr client\footnote{https://www.npmjs.com/package/solr-client}, která implementuje veškerou komunikaci se Solr potřebnou pro splnění požadavků aplikace. S~platformou Solr bychom se dorozuměli i~prostřednictvím jejího REST~API, což využijeme při tvorbě schématu. Pro vkládání dokumentů a~dotazování se nad nimi je ovšem pohodlnější pracovat s~více high-level rozhraním, což nám umožní právě zmíněná knihovna.
 
 \subsection{Příprava dokumentů}
 
-Během tvorby schématu pro dokumenty receptů musíme zohlednit $2$ základní požadavky vyhledávání:
+Během tvorby schématu pro dokumenty receptů musíme zohlednit $2$~základní požadavky vyhledávání:
 \begin{itemize}
     \item Vyhledávané termíny musí být analyzovány jako lokalizovaný text, aktuálně výhradně anglický.
-    \item Během vyhledávání musí být k dispozici našeptávač s fasetovou hierarchií filtrů.
+    \item Během vyhledávání musí být k~dispozici našeptávač s~fasetovou hierarchií filtrů.
 \end{itemize}
 
 \subsubsection{Podpora fasetového vyhledávání}
 
-Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace. Stejný trik použijeme i u dalších filtrů, které musí být uloženy jako anglický text a zároveň ze stejných hodnot potřebujeme sestrojit fasetovou hierarchii. Pokud je mapování hodnot těchto filtrů $1$:$1$, můžeme využít konceptu tzv. \emph{copy field}. Na úrovni schématu nadefinujeme copy field z výchozí položky filtru do fasetové položky a hodnota se přidáním dokumentu automaticky zkopíruje.
+Platforma Solr poskytuje přímou podporu fasetové navigace nad libovolnými položkami dokumentů. Můžeme tedy například snadno specifikovat fasetové vyhledávání nad ingrediencemi, čímž získáme list unikátních jmen surovin, které se v~celé kolekci receptů vyskytují. Je zde ovšem jisté omezení. Pokud fasetové vyhledávání spustíme přímo nad ingrediencemi, které máme uloženy pod typem anglického textu, Solr nám vrátí pouze transformovaná jména ingrediencí, tak jak je má uložena pro své interní vyhledávání. Data tohoto formátu nejsou vhodná pro prezentaci uživateli, tudíž budeme potřebovat ke každému receptu přiřadit nový seznam ingrediencí určený výhradně pro fasetové vyhledávání. Na úrovni schématu definujeme typ fasetových ingrediencí jako prostý řetězec, nad kterým se neprovedou žádné transformace. Stejný trik použijeme i~u~dalších filtrů, které musí být uloženy jako anglický text a~zároveň ze stejných hodnot potřebujeme sestrojit fasetovou hierarchii. Pokud je mapování hodnot těchto filtrů $1$:$1$, můžeme využít konceptu tzv.~\emph{copy field}. Na úrovni schématu nadefinujeme copy field z~výchozí položky filtru do fasetové položky a~hodnota se přidáním dokumentu automaticky zkopíruje.
 
-Skripty pro vytvoření schématu i následné nahrání dokumentů jsou k dispozici v adresáři \texttt{data/solr}. Vytvoření schématu pomocí skriptu \texttt{fields-manager.mjs} je myšleno jako jednorázová záležitost, zatímco aktualizace dokumentů skriptem \texttt{documents-manager.js} bude provedena při každém rozšíření databáze dokumentů.
+Skripty pro vytvoření schématu i~následné nahrání dokumentů jsou k~dispozici v~adresáři \texttt{data/solr}. Vytvoření schématu pomocí skriptu \texttt{fields-manager.mjs} je myšleno jako jednorázová záležitost, zatímco aktualizace dokumentů skriptem \texttt{documents-manager.js} bude provedena při každém rozšíření databáze dokumentů.
 
-V rámci skriptu \texttt{documents-manager.js} jsou načteny dokumenty receptů přímo z databáze CouchDB. Následně jsou vybrána data vyžadovaná Solr modelem, který jsme popsali v předchozí kapitole při návrhu architektury. Data jsou převedena do odpovídajícího formátu vhodného pro indexování. Také je zde vyřešeno poměrně netriviální vyhledávání dle fasetových ingrediencí. Oproti ostatním položkám fasetové hierarchie jsou ingredience problematické, protože v základní položce \texttt{ingredients} ukládáme nestrukturovaný text ingredience včetně množství a jednotky měření. Není zde tedy mapování $1$:$1$ mezi výchozí položkou ingrediencí a odpovídající fasetovou položkou. Jména ingrediencí pro našeptávač získáme z normalizovaných ingrediencí datové sady Food.com. Pro korektní fasetovou hierarchii ale potřebujeme znát počet všech receptů, které jsou pod těmito jmény surovin nalezeny, nejen receptů z Food.com, s nimiž máme normalizované ingredience provázané. Jelikož jsme stále ve fázi předzpracování dat a můžeme si dovolit delší dobu výpočtu, aplikujeme následující algoritmus:
+V~rámci skriptu \texttt{documents-manager.js} jsou načteny dokumenty receptů přímo z~databáze CouchDB. Následně jsou vybrána data vyžadovaná Solr modelem, který jsme popsali v~předchozí kapitole při návrhu architektury. Data jsou převedena do odpovídajícího formátu vhodného pro indexování. Také je zde vyřešeno poměrně netriviální vyhledávání dle fasetových ingrediencí. Oproti ostatním položkám fasetové hierarchie jsou ingredience problematické, protože v~základní položce \texttt{ingredients} ukládáme nestrukturovaný text ingredience včetně množství a~jednotky měření. Není zde tedy mapování $1$:$1$ mezi výchozí položkou ingrediencí a~odpovídající fasetovou položkou. Jména ingrediencí pro našeptávač získáme z~normalizovaných ingrediencí datové sady Food.com. Pro korektní fasetovou hierarchii ale potřebujeme znát počet všech receptů, které jsou pod těmito jmény surovin nalezeny, nejen receptů z~Food.com, s~nimiž máme normalizované ingredience provázané. Jelikož jsme stále ve fázi předzpracování dat a~můžeme si dovolit delší dobu výpočtu, aplikujeme následující algoritmus:
 \begin{enumerate}
     \item Nahrajeme všechny dokumenty receptů do Solr.
-    \item Načteme vyhledávací ingredience ze souboru \texttt{search\underline{{ }}ingredients.json} uvnitř adresáře \texttt{data/resources/foodcom/ingredients}. Eventuálně můžeme zkombinovat vyhledávací ingredience vybrané z více různých datasetů s recepty.
-    \item Pro každou z vyhledávacích ingrediencí sestrojíme dotaz pro nalezení všech receptů na základě existující položky \texttt{ingredients}.
-    \item Projdeme všechny nalezené recepty, identifikujeme je v původní sadě receptů a uložíme do nich vyhledávací ingredienci v poli \texttt{\underline{{ }}ingredientsFacet}.
+    \item Načteme vyhledávací ingredience ze souboru \texttt{search\underline{{ }}ingredients.json} uvnitř adresáře \texttt{data/resources/foodcom/ingredients}. Eventuálně můžeme zkombinovat vyhledávací ingredience vybrané z~více různých datasetů s~recepty.
+    \item Pro každou z~vyhledávacích ingrediencí sestrojíme dotaz pro nalezení všech receptů na základě existující položky \texttt{ingredients}.
+    \item Projdeme všechny nalezené recepty, identifikujeme je v~původní sadě receptů a~uložíme vyhledávací ingredienci do jejich pole \texttt{\underline{{ }}ingredientsFacet}.
     \item Odstraníme všechny dokumenty ze Solr.
-    \item Nahrajeme dokumenty s vyplněnými položkami \texttt{\underline{{ }}ingredientsFacet} do Solr.
+    \item Nahrajeme dokumenty s~vyplněnými položkami \texttt{\underline{{ }}ingredientsFacet} do Solr.
 \end{enumerate}
 
 \subsection{Vyhledávací dotazy}
 
-Nad Solr dokumenty se budeme dotazovat na backendu aplikace prostřednictvím modelu \texttt{SolrRecipesModel}, jehož definici najdeme v adresáři \texttt{solr}. Stejně jako u modelů CouchDB vytváříme novou instanci \texttt{SolrRecipesModel} pro každý požadavek uživatele, spojení s platformou Solr ale udržujeme pouze jedno díky třídě \texttt{SolrClientFactory}. Formát dotazu pro vyhledání všech receptů vypadá ve zjednodušené podobě následovně:
+Nad Solr dokumenty se budeme dotazovat na backendu aplikace prostřednictvím modelu \texttt{SolrRecipesModel}, jehož definici najdeme v~adresáři \texttt{solr}. Stejně jako u~modelů CouchDB vytváříme novou instanci \texttt{SolrRecipesModel} pro každý požadavek uživatele, spojení s~platformou Solr ale udržujeme pouze jedno díky třídě \texttt{SolrClientFactory}. Formát dotazu pro vyhledání všech receptů vypadá ve zjednodušené podobě následovně:
 \begingroup
 \samepage
 \begin{code}
@@ -266,7 +267,7 @@ const query = this.client
 %$
 \endgroup
 
-Pokud vyhledáváme podle surovin, budeme chtít získat také zvýrazněné ingredience v položce \texttt{highlighting}. Toho docílíme zavoláním metody \texttt{hl} na vytvořené query:
+Pokud vyhledáváme podle surovin, budeme chtít získat také zvýrazněné ingredience v~položce \texttt{highlighting}. Toho docílíme zavoláním metody \texttt{hl} na vytvořené query:
 \begingroup
 \samepage
 \begin{code}
@@ -280,11 +281,11 @@ const query = simpleQuery.hl({
 
 \section{Middleware}
 
-Úlohu přijímání požadavků klienta a jejich delegaci na modely CouchDB a Solr má na starosti tzv. Express aplikace umístěná v souboru \texttt{backend/app.ts}. Definuje podobu našeho REST API a využívá routing s vnořenými cestami. V kořenovém souboru \texttt{app.ts} definuje pouze základ adres endpointů, tedy \texttt{/api/recipes} a \texttt{/api/ingredients}. Jejich specializaci pak čte ze souborů \texttt{recipes-routes.ts} a \texttt{ingredients-routes.ts}, které exportují třídu \texttt{Router} s definovaným chováním pro různé API endpointy. Ty mají na starost extrakci id z adresy požadavku, hodnot z query parametrů, jejich předání příslušným modelům a odeslání výsledného JSON dokumentu se správným stavovým kódem zpět na zařízení klienta.
+Úlohu přijímání požadavků klienta a~jejich delegaci na modely CouchDB a~Solr má na starosti tzv.~Express aplikace umístěná v~souboru \texttt{backend/app.ts}. Definuje podobu našeho REST~API a~využívá routing s~vnořenými cestami. V~kořenovém souboru \texttt{app.ts} definuje pouze základ adres endpointů, tedy \texttt{/api/recipes} a~\texttt{/api/ingredients}. Jejich specializaci pak čte ze souborů \texttt{recipes-routes.ts} a~\texttt{ingredients-routes.ts}, které exportují třídu \texttt{Router} s~definovaným chováním pro různé API endpointy. Ty mají na starost extrakci id z~adresy požadavku, hodnot z~query parametrů, jejich předání příslušným modelům a~odeslání výsledného JSON dokumentu se správným stavovým kódem zpět na zařízení klienta.
 
 \section{Single-page aplikace}
 
-V návrhu architektury klientské části aplikace jsme rozhodli, že naše řešení sestrojíme s využitím knihovny React a jejích funkcionálních komponent v kombinaci se speciálními funkcemi zvanými Hooks. Nejprve si tedy představíme tyto klíčové stavební prvky. Následně se zaměříme na jejich zapojení v rámci aplikace s recepty.
+V~návrhu architektury klientské části aplikace jsme rozhodli, že naše řešení sestrojíme s~využitím knihovny React a~jejích funkcionálních komponent v~kombinaci se speciálními funkcemi zvanými Hooks. Nejprve si tedy představíme tyto klíčové stavební prvky. Následně se zaměříme na jejich zapojení v~rámci aplikace s~recepty.
 
 \subsection{Funkcionální komponenta}
 
@@ -295,34 +296,34 @@ const element = <h1>Headline</h1>;
 \end{code}
 %$
 
-Ekvivalentem pro vývoj v~jazyce TypeScript je formát \emph{TSX}, který využijeme v~naší aplikaci. Rozlišujeme čistě prezentační komponenty, které pouze renderují data přijatá přes parametr \texttt{props}, a~stavové komponenty způsobující vedlejší efekty v~podobě změny stavu aplikace. Dle konvence má každá komponenta, byť jednoduchá, nárok na vlastní soubor, který snadno poznáme podle koncovky \texttt{jsx}, respektive \texttt{tsx} při vývoji v TypeScriptu.
+Ekvivalentem pro vývoj v~jazyce TypeScript je formát \emph{TSX}, který využijeme v~naší aplikaci. Rozlišujeme čistě prezentační komponenty, které pouze renderují data přijatá přes parametr \texttt{props}, a~stavové komponenty způsobující vedlejší efekty v~podobě změny stavu aplikace. Dle konvence má každá komponenta, byť jednoduchá, nárok na vlastní soubor, který snadno poznáme podle koncovky \texttt{jsx}, respektive \texttt{tsx} při vývoji v~TypeScriptu.
 
 \subsection{Hooks}
 
-Koncept Hooks byl poprvé uveden ve verzi React $16.8$. Jedná se o speciální funkce, které umožňují spravovat stav, životní cyklus a další vlastnosti funkcionálních komponent bez využití tříd. Pomáhají dělit komponenty do menších funkcí na základě souvisejících částí kódu, což v komponentách na bázi tříd často není snadné zařídit. Například uvnitř vestavěné funkce \texttt{componentDidUpdate} se mohou potkat zcela nesouvisející části kódu, které je potřeba vykonat v případě aktualizace komponenty. Aplikační logiku soustředěnou uvnitř Hooks lze využít ve více komponentách a také je snadné kód testovat nezávisle na komponentě \citep{react-hooks}.
+Koncept Hooks byl poprvé uveden ve verzi React $16.8$. Jedná se o~speciální funkce, které umožňují spravovat stav, životní cyklus a~další vlastnosti funkcionálních komponent bez využití tříd. Pomáhají dělit komponenty do menších funkcí na základě souvisejících částí kódu, což v~komponentách na bázi tříd často není snadné zařídit. Například uvnitř vestavěné funkce \texttt{componentDidUpdate} se mohou potkat zcela nesouvisející části kódu, které je potřeba vykonat v~případě aktualizace komponenty. Aplikační logiku soustředěnou uvnitř Hooks lze využít ve více komponentách a~také je snadné kód testovat nezávisle na komponentě \citep{react-hooks}.
 
-Pro pojmenování Hooks existuje striktní jmenná konvence --- všechny Hooks musejí začínat slovem \texttt{use}. Příklady nejdůležitějších Hooks poskytovaných knihovnou React jsou \texttt{useState} a \texttt{useEffect} vztahující se po řadě ke stavu a životnímu cyklu komponenty. V rámci jedné komponenty je lze podle potřeby využít libovolně mnohokrát. Také je možné vytvářet vlastní Hooks. Stejně jako komponenty se ukládají do souborů s koncovkou \texttt{tsx} a React je správně identifikuje jako Hooks právě na základě jména s počátečním slovem \texttt{use}. Kromě správného pojmenování musí Hooks dodržovat následující omezení \citep{react-hooks-w3c}:
+Pro pojmenování Hooks existuje striktní jmenná konvence --- všechny Hooks musejí začínat slovem \texttt{use}. Příklady nejdůležitějších Hooks poskytovaných knihovnou React jsou \texttt{useState} a~\texttt{useEffect} vztahující se po řadě ke stavu a~životnímu cyklu komponenty. V~rámci jedné komponenty je lze podle potřeby využít libovolně mnohokrát. Také je možné vytvářet vlastní Hooks. Stejně jako komponenty se ukládají do souborů s~koncovkou \texttt{tsx} a~React je správně identifikuje jako Hooks právě na základě jména s~počátečním slovem \texttt{use}. Kromě správného pojmenování musí Hooks dodržovat následující omezení \citep{react-hooks-w3c}:
 \begin{itemize}
-    \item Hooks mohou být použity pouze uvnitř funkcionálních komponent. V běžných funkcích ani komponentách implementovaných pomocí třídy nebudou fungovat.
+    \item Hooks mohou být použity pouze uvnitř funkcionálních komponent. V~běžných funkcích ani komponentách implementovaných pomocí třídy nebudou fungovat.
     \item Hooks nelze volat ve vnořených funkcích komponenty.
     \item Hooks nemohou ukládat různý výsledek na základě podmínky.
 \end{itemize}
  
 \subsection{Struktura aplikace}
 
-Knihovnu React lze s aplikací integrovat různými způsoby. Nejjednodušším řešením je přidání \texttt{<script>} tagu do HTML dokumentu, volitelně s dalším tagem \texttt{<script>} pro podporu JSX syntaxe. Tento způsob je vhodný pro aplikace, které primárně nejsou navrženy jako single-page a potřebují prvky knihovny React využít pouze pro vybrané dynamické komponenty. Náš projekt má být naopak na principu single-page aplikace založen, využijeme tedy doporučené řešení v podobě prostředí Create React App\footnote{https://www.npmjs.com/package/create-react-app}. Adresářovou strukturu a konfiguraci projektu vytvoříme následujícím příkazem:
+Knihovnu React lze s~aplikací integrovat různými způsoby. Nejjednodušším řešením je přidání \texttt{<script>} tagu do HTML dokumentu, volitelně s~dalším tagem \texttt{<script>} pro podporu JSX syntaxe. Tento způsob je vhodný pro aplikace, které primárně nejsou navrženy jako single-page a~potřebují prvky knihovny React využít pouze pro vybrané dynamické komponenty. Náš projekt má být naopak na principu single-page aplikace založen, využijeme tedy doporučené řešení v~podobě prostředí \emph{Create React App}\footnote{https://www.npmjs.com/package/create-react-app}. Adresářovou strukturu a~konfiguraci projektu vytvoříme následujícím příkazem:
 \begin{code}
 npx create-react-app frontend
 \end{code}
 %$
 
-Aplikaci spustíme z kořenového adresáře \texttt{app/frontend} příkazem \texttt{npm\,start}. Výchozí adresou je \texttt{localhost:3000}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v prohlížeči při každém uložení.
+Aplikaci spustíme z~kořenového adresáře \texttt{app/frontend} příkazem \texttt{npm\,start}. Výchozí adresou je \texttt{localhost:3000}. Ve vytvořeném projektu je nastavena funkce automatické aktualizace při uložení souboru, díky které okamžitě vidíme provedené změny v~prohlížeči při každém uložení.
 
 \subsubsection{HTML dokument single-page aplikace}
 
-V podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index.html}. Ten nebude potřeba z naší strany příliš modifikovat, pouze přidáme odkaz na ikony z knihovny Material UI, abychom je mohli využívat v rámci aplikace a také nahradíme obsah tagu \texttt{<title>} názvem našeho projektu, tedy MeaLinker.
+V~podadresáři \texttt{public} nalezneme kořenový HTML dokument \texttt{index.html}. Ten nebude potřeba z~naší strany příliš modifikovat, pouze přidáme odkaz na ikony z~knihovny Material UI, abychom je mohli využívat v~rámci aplikace a také nahradíme obsah tagu \texttt{<title>} názvem našeho projektu, tedy MeaLinker.
 
-V adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme logo vygenerované webovou aplikací Logo Maker\footnote{https://express.adobe.com/express-apps/logo-maker/} z dílny Adobe Express, které zadáme klíčové slovo \emph{Recipe}. Pokud bychom potřebovali banner včetně jména aplikace, přidali bychom do konfigurace generování loga ještě název \emph{MeaLinker}. Jako podklad použijeme ikonu\footnote{https://thenounproject.com/icon/search-food-2835433/} dohledatelnou pod frází \emph{search food}. Vygenerovaný výsledek je znázorněn obrázkem \ref{obr03:mealinker-logo}. Při návrhu barevného schématu aplikace se stejně jako u loga budeme držet červených odstínů, které doplníme o prvky zelené jakožto sekundární barvy palety.
+V~adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme logo vygenerované webovou aplikací Logo Maker\footnote{https://express.adobe.com/express-apps/logo-maker/} z~dílny Adobe Express, které zadáme klíčové slovo \emph{Recipe}. Pokud bychom potřebovali banner včetně jména aplikace, přidali bychom do konfigurace generování loga ještě název \emph{MeaLinker}. Jako podklad použijeme ikonu\footnote{https://thenounproject.com/icon/search-food-2835433/} dohledatelnou pod frází \emph{search food}. Vygenerovaný výsledek je znázorněn obrázkem \ref{obr03:mealinker-logo}. Při návrhu barevného schématu aplikace se stejně jako u loga budeme držet červených odstínů, které doplníme o~prvky zelené jakožto sekundární barvy palety.
 
 \begin{figure}[h!]\centering
 \includegraphics[width=40mm]{../img/mealinker-logo}
@@ -332,7 +333,7 @@ V adresáři \texttt{public} je rovněž uložena ikona aplikace. Využijeme log
 
 \subsubsection{Výchozí bod aplikace}
 
-V adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}. Renderování vnořených elementů zajišťuje pomocí metody \texttt{render}, jejíž volání odpovídá architektuře znázorněné v předchozí kapitole, viz obrázek \ref{obr02:react-app}:
+V~adresáři \texttt{src} nalezneme soubor \texttt{index.tsx}, kde je vytvořen kořen stromové struktury elementů \texttt{React.ReactNode}. Renderování vnořených elementů zajišťuje metodou \texttt{render}, jejíž parametr odpovídá architektuře znázorněné v~předchozí kapitole, viz obrázek \ref{obr02:react-app}:
 
 \begingroup
 \samepage
@@ -352,7 +353,7 @@ root.render(
 %$
 \endgroup
 
-Zbývající část architektury \ref{obr02:react-app} je implementována komponentou \texttt{App}, která rozděluje strukturu aplikace na hlavičku, hlavní obsah uvnitř tagu \texttt{<main>} a patičku. Odpovídající komponenty jsou vnořeny do komponenty \texttt{ThemeProvider}, která umožňuje používat prvky definovaného tématu kdekoli v aplikaci. Naše téma bude sestávat pouze z palety s primární a sekundární barvou. Zjednodušená struktura komponenty \texttt{App} v kódu vypadá následovně (proměnná \texttt{theme} je vytvořena před samotnou komponentou):
+Zbývající část architektury \ref{obr02:react-app} je implementována komponentou \texttt{App}, která rozděluje strukturu aplikace na hlavičku, hlavní obsah uvnitř tagu \texttt{<main>} a~patičku. Odpovídající komponenty jsou vnořeny do komponenty \texttt{ThemeProvider}, která umožňuje používat prvky zadefinovaného tématu kdekoli v~aplikaci. Naše téma bude sestávat pouze z~palety s~primární a~sekundární barvou. Zjednodušená struktura komponenty \texttt{App} v~kódu vypadá následovně (proměnná \texttt{theme} je vytvořena před samotnou komponentou):
 
 \begingroup
 \samepage
@@ -374,9 +375,9 @@ Zbývající část architektury \ref{obr02:react-app} je implementována kompon
 %$
 \endgroup
 
-Komponenta \texttt{Routes} definuje, jaké komponenty se mají renderovat na základě zadané URL adresy. Například při otevření stránky s relativní adresou \texttt{/recipes} se uvnitř tagu \texttt{main} vyrenderuje komponenta \texttt{Recipes}. Pokud k této adrese přidáme id receptu, vyrenderuje se komponenta \texttt{RecipeDetail}, uvnitř které můžeme přistoupit k hodnotě proměnné \texttt{recipeId} prostřednictvím funkce \texttt{useParams} z knihovny \texttt{react-router-dom}.
+Komponenta \texttt{Routes} definuje, jaké komponenty se mají renderovat na základě zadané URL adresy. Například při otevření stránky s~relativní adresou \texttt{/recipes} se uvnitř tagu \texttt{main} vyrenderuje komponenta \texttt{Recipes}. Pokud k~této adrese přidáme id receptu, vyrenderuje se komponenta \texttt{RecipeDetail}, uvnitř které můžeme přistoupit k~hodnotě proměnné \texttt{recipeId} prostřednictvím funkce \texttt{useParams} z~knihovny \texttt{react-router-dom}.
 
-Důležitá je také komponenta \texttt{HelmetProvider}, která vystupuje jako obal komponenty \texttt{ThemeProvider} a je tak návratovým elementem komponenty \texttt{App}. \texttt{HelmetProvider} pochází z knihovny \texttt{react-helmet-async}\footnote{https://www.npmjs.com/package/react-helmet-async}, která umožňuje měnit obsah hlavičky HTML dokumentu uvnitř aplikace. Tuto funkcionalitu potřebujeme pro vložení strukturovaných JSON-LD dat do hlavičky HTML na stránce detailu receptu a ingredience. Jelikož se tyto stránky generují dynamicky na základě unikátního id v URL adrese, musíme JSON-LD data vkládat rovněž dynamicky podle aktuálního id. Komponentu \texttt{Helmet} lze vnořit na libovolné místo v JSX kódu aplikace. Příklad využití z komponenty \texttt{RecipeDetail}:
+Důležitá je také komponenta \texttt{HelmetProvider}, která vystupuje jako obal komponenty \texttt{ThemeProvider} a~je tak návratovým elementem komponenty \texttt{App}. \texttt{HelmetProvider} pochází z~knihovny \texttt{react-helmet-async}\footnote{https://www.npmjs.com/package/react-helmet-async}, která umožňuje měnit obsah hlavičky HTML dokumentu uvnitř aplikace. Tuto funkcionalitu potřebujeme pro vložení strukturovaných JSON-LD dat do hlavičky HTML na stránce detailu receptu a~ingredience. Jelikož se tyto stránky generují dynamicky na základě unikátního id v~URL adrese, musíme JSON-LD data vkládat rovněž dynamicky podle aktuálního id. Komponentu \texttt{Helmet} lze vnořit na libovolné místo v~JSX kódu aplikace. Příklad využití z~komponenty \texttt{RecipeDetail}:
 
 \begingroup
 \samepage
@@ -392,31 +393,31 @@ Důležitá je také komponenta \texttt{HelmetProvider}, která vystupuje jako o
 
 \subsubsection{Binární soubory}
 
-V adresáři \texttt{src/assets} soustředíme potřebné binární soubory. V současné verzi aplikace zde budou pouze obrázky, konkrétně ikony využívané napříč aplikací. Většinu získáme z kolekce volně dostupných ikon platformy Flaticon\footnote{https://www.flaticon.com/}. Je vyžadován odkaz na zdroj a tvůrce ikony, s čímž si poradíme zahrnutím odkazů uvnitř tagu \texttt{<footer>}.
+V~adresáři \texttt{src/assets} soustředíme potřebné binární soubory. V~současné verzi aplikace zde budou pouze obrázky, konkrétně ikony využívané napříč aplikací. Většinu získáme z~kolekce volně dostupných ikon platformy Flaticon\footnote{https://www.flaticon.com/}. Je vyžadován odkaz na zdroj a~tvůrce ikony, s~čímž si poradíme zahrnutím odkazů uvnitř tagu \texttt{<footer>}.
 
 \subsubsection{Funkcionální komponenty}
 
-Adresář \texttt{src} kromě assetů obsahuje také podadresáře \texttt{recipes} a \texttt{ingredients}. Oba mají podobnou strukturu a obsahují adresáře \texttt{pages}, \texttt{components} a \texttt{types}. Adresáře \texttt{types} obsahují definice typů entit, které jsou přijímány ze serverové části aplikace. Pokud bychom aplikaci psali pouze v JavaScriptu, vystačili bychom si s volitelnými anotacemi funkcí pro vyjádření typů parametrů. Za povšimnutí stojí koncovka souborů typů, která je rozdílná od většiny ostatních souborů na frontendu, tedy \texttt{ts} namísto \texttt{tsx}. Jedná se totiž o běžné soubory jazyka TypeScript, nikoli o komponenty určené specificky pro knihovnu React psané syntaxí TSX. Jinak jednotlivé typy odpovídají definicím na backendu aplikace, nemusíme se jim tedy dále věnovat.
+Adresář \texttt{src} kromě assetů obsahuje také podadresáře \texttt{recipes} a~\texttt{ingredients}. Oba mají podobnou strukturu a~obsahují adresáře \texttt{pages}, \texttt{components} a~\texttt{types}. Adresáře \texttt{types} obsahují definice typů entit, které jsou přijímány ze serverové části aplikace. Pokud bychom aplikaci psali pouze v~JavaScriptu, vystačili bychom si s~volitelnými anotacemi funkcí pro vyjádření typů parametrů. Za povšimnutí stojí koncovka souborů typů, která je rozdílná od většiny ostatních souborů na frontendu, tedy \texttt{ts} namísto \texttt{tsx}. Jedná se totiž o~běžné soubory jazyka TypeScript, nikoli o~komponenty určené specificky pro knihovnu React psané syntaxí TSX. Jinak jednotlivé typy odpovídají definicím na backendu aplikace, nemusíme se jim tedy dále věnovat.
 
-Jak napovídá název, obsah adresářů \texttt{pages} bude souviset s jednotlivými obrazovkami aplikace. Najdeme zde pouze komponenty reprezentující jednotlivé stránky, které jsou zároveň provázané s komponentami \texttt{Route} z \texttt{App.tsx} skrze položku \texttt{element}. Konkrétně se v adresářích nazvaných \texttt{pages} nacházejí komponenty \texttt{Recipes}, \texttt{RecipeDetail} a \texttt{IngredientDetail}.
+Jak napovídá název, obsah adresářů \texttt{pages} bude souviset s~jednotlivými obrazovkami aplikace. Najdeme zde pouze komponenty reprezentující jednotlivé stránky, které jsou zároveň provázané s~komponentami \texttt{Route} z~\texttt{App.tsx} skrze položku \texttt{element}. Konkrétně se v~adresářích nazvaných \texttt{pages} nacházejí komponenty \texttt{Recipes}, \texttt{RecipeDetail} a~\texttt{IngredientDetail}.
 
-Zbylé stavební komponenty aplikace jsou rozmístěny v adresářích \texttt{components}. Při jejich tvorbě se snažíme uplatňovat již zmíněný princip jedné odpovědnosti a provádět dekompozici příliš komplexních komponent. Také využijeme architekturu callback funkcí, které pošleme skrze props do vnořené komponenty a aktivujeme je na základě události spravované komponentou potomka (například stisku tlačítka). V některých případech bude muset callback projít přes více komponent.
+Zbylé stavební komponenty aplikace jsou rozmístěny v~adresářích \texttt{components}. Při jejich tvorbě se snažíme uplatňovat již zmíněný princip jedné odpovědnosti a~provádět dekompozici příliš komplexních komponent. Také využijeme architekturu callback funkcí, které budeme posílat skrze props do vnořených komponent a~aktivujeme je na základě událostí spravovaných vnořenými komponentami (například stisku tlačítka). V~některých případech bude muset callback projít přes více komponent.
 
-API dokumentace jednotlivých komponent je dostupná v adresáři \texttt{docs} skrze soubor \texttt{index.html}, případně na domovské stránce\footnote{https://lhotanok.github.io/MeaLinker} projektu implementované pomocí GitHub Pages. Adresář \texttt{docs} musí být umístěn v kořeni repositáře pro kompatibilitu s GitHub Pages. Dokumentace byla vygenerována pomocí nástroje React Styleguidist\footnote{https://github.com/styleguidist/react-styleguidist} spuštěním příkazu \texttt{npm styleguide:build} uvnitř adresáře \texttt{frontend}.
+API dokumentace jednotlivých komponent je dostupná v~adresáři \texttt{docs} skrze soubor \texttt{index.html}, případně na domovské stránce\footnote{https://lhotanok.github.io/MeaLinker} projektu implementované pomocí GitHub Pages. Adresář \texttt{docs} musí být umístěn v~kořeni repositáře pro kompatibilitu s~GitHub Pages. Dokumentace byla vygenerována pomocí nástroje React Styleguidist\footnote{https://github.com/styleguidist/react-styleguidist} spuštěním příkazu \texttt{npm styleguide:build} uvnitř adresáře \texttt{frontend}.
 
-\subsubsection{Sdílené komponenty a funkce}
+\subsubsection{Sdílené komponenty a~funkce}
 
-Posledním podadresářem uvnitř \texttt{src} je adresář \texttt{shared}. Najdeme zde již zná\-mé adresáře \texttt{types} s typy pro TypeScript a \texttt{components} s komponentami využívanými na více místech aplikace. Dále adresář \texttt{hooks} vyhrazený pro vlastní Hooks. Aktuálně obsahuje jediný soubor \texttt{use-http.tsx} s exportovanou funkcí \texttt{useHttp}. Tu využijeme všude, kde potřebujeme asynchronně komunikovat se serverem aplikace: 
+Posledním podadresářem uvnitř \texttt{src} je adresář \texttt{shared}. Najdeme zde již zná\-mé adresáře \texttt{types} s~typy pro TypeScript a~\texttt{components} s~komponentami využívanými na více místech aplikace. Dále adresář \texttt{hooks} vyhrazený pro vlastní Hooks. Aktuálně obsahuje jediný soubor \texttt{use-http.tsx} s~exportovanou funkcí \texttt{useHttp}. Tu využijeme všude, kde potřebujeme asynchronně komunikovat se serverem aplikace: 
 \begin{itemize}
-    \item V komponentě \texttt{Recipes} pro získání receptů na základě vyhledávacích parametrů.
-    \item V komponentě \texttt{RecipeDetail} pro vyhledání receptu dle id z URL.
-    \item V komponentě \texttt{IngredientDetail} pro vyhledání ingredience dle id z URL.
+    \item V~komponentě \texttt{Recipes} pro získání receptů na základě vyhledávacích parametrů.
+    \item V~komponentě \texttt{RecipeDetail} pro vyhledání receptu dle id z~URL.
+    \item V~komponentě \texttt{IngredientDetail} pro vyhledání ingredience dle id z~URL.
 \end{itemize}
-Kromě \texttt{types}, \texttt{components} a \texttt{hooks} jsou do adresáře \texttt{shared} přesunuty pomocné funkce z různých částí aplikace. Jejich soubory jsou soustředěny v podadresáři \texttt{tools} a mohou mít běžnou koncovku \texttt{ts}, ale i rozšířenou \texttt{tsx}, pokud pracují s parametry nebo návratovými hodnotami typu \texttt{JSX.Element}.
+Kromě \texttt{types}, \texttt{components} a~\texttt{hooks} jsou do adresáře \texttt{shared} přesunuty pomocné funkce z~různých částí aplikace. Jejich soubory jsou soustředěny v~podadresáři \texttt{tools} a~mohou mít běžnou koncovku \texttt{ts}, ale i~rozšířenou \texttt{tsx}, pokud pracují s~parametry nebo návratovými hodnotami typu \texttt{JSX.Element}.
 
-\subsection{Komunikace přes REST API}
+\subsection{Komunikace přes REST~API}
 
-Jak jsme zmínili v předchozí části, pro zajištění asynchronní komunikace se serverovou částí aplikace jsme vytvořili vlastní Hook v podobě funkce \texttt{useHttp}. Co se týče stránek s detaily receptů a ingrediencí, získání dat je přímočaré --- z URL adresy získáme unikátní identifikátor, z něj vytvoříme URL adresu pro příslušný endpoint našeho REST API a vyžádáme si data pomocí HTTP GET požadavku. Musíme si ale dát pozor na správné nastavení výchozích hodnot proměnných, se kterými dále pracujeme v rámci renderování. Než se nám data načtou, nemůžeme přistupovat ke vnořeným položkám, pokud je explicitně nezadefinujeme v rámci výchozí hodnoty. Pokud bychom například načítali data receptu do proměnné \texttt{recipe} a její výchozí hodnotu nastavili na null, nemohli bychom pracovat s položkami \texttt{recipe.jsonld} a \texttt{recipe.structured} před tím, než data skutečně dorazí. Aplikace by spadla s běhovou chybou, neboť bychom se snažili přistoupit k hodnotě \texttt{null.jsonld} a \texttt{null.structured}. Proměnnou recipe tedy raději vytvoříme následovně:
+Jak jsme zmínili v~předchozí části, pro zajištění asynchronní komunikace se serverovou částí aplikace jsme vytvořili vlastní Hook v~podobě funkce \texttt{useHttp}. Co se týče stránek s~detaily receptů a~ingrediencí, získání dat od serveru je přímočaré --- z URL adresy získáme unikátní identifikátor, z~něj vytvoříme URL adresu pro příslušný endpoint našeho REST~API a~vyžádáme si data pomocí HTTP GET požadavku. Musíme si ale dát pozor na správné nastavení výchozích hodnot proměnných, se kterými dále pracujeme v~rámci renderování. Než se nám data načtou, nemůžeme přistupovat ke vnořeným položkám, pokud je explicitně nezadefinujeme v~rámci výchozí hodnoty. Pokud bychom například načítali data receptu do proměnné \texttt{recipe} a~její výchozí hodnotu nastavili na \texttt{null}, nemohli bychom pracovat s~položkami \texttt{recipe.jsonld} a~\texttt{recipe.structured} před tím, než data skutečně dorazí. Aplikace by spadla s~běhovou chybou, neboť bychom se snažili přistoupit k~hodnotě \texttt{null.jsonld} a~\texttt{null.structured}. Proměnnou \texttt{recipe} tedy raději vytvoříme následovně:
 \begingroup
 \samepage
 \begin{code}
@@ -426,26 +427,26 @@ const [recipe, setRecipe] = useState<FullRecipe>({
 } as FullRecipe);
 \end{code}
 %$
-Nyní můžeme přistupovat i k položkám zanořeným o úroveň hlouběji, například \texttt{recipe.structured.ingredients}, které budou mít validní hodnotu \texttt{undefined}.
+Nyní můžeme přistupovat i~k~položkám zanořeným o~úroveň hlouběji, například \texttt{recipe.structured.ingredients}, které budou mít validní hodnotu \texttt{undefined}.
 \endgroup
 
-Získávání dat pro stránku vyhledávání receptů lze pojmout různými způsoby, které se liší komplexitou a rychlostí prezentace dat uživateli. V naší aplikaci pracujeme s konceptem stránkování, přičemž počet výsledků na jedné stránce poměrně výrazně omezíme na $24$ výsledků z důvodu zrychlení renderování. Při každém přidání nového filtru aktualizujeme query parametry současné URL adresy a od endpointu \texttt{/api/recipes}, respektive \texttt{localhost:5000/api/recipes}, si vyžádáme nové výsledky. Během vývoje aplikace pracujeme výhradně na adrese \texttt{localhost}, nelze tedy reálně otestovat, za jak dlouho dorazí odpověď, pokud je dotaz poslán ze zařízení klienta na vzdálený server. V případě komunikace v rámci \texttt{localhost} trvá zpracování dotazu přibližně $50\,$ms. Máme tedy desetinásobnou rezervu vzhledem k požadavku získání dat do $500\,$ms, což by mělo být dostačující. V opačném případě bychom museli implementovat mechanismus cachování.
+Získávání dat pro stránku vyhledávání receptů lze pojmout různými způsoby, které se liší komplexitou a~rychlostí prezentace dat uživateli. V~naší aplikaci pracujeme s~konceptem stránkování, přičemž počet výsledků na jedné stránce poměrně výrazně omezíme na $24$ výsledků z~důvodu zrychlení renderování. Při každém přidání nového filtru aktualizujeme query parametry současné URL adresy a~od endpointu \texttt{/api/recipes}, respektive \texttt{localhost:5000/api/recipes}, si vyžádáme nové výsledky. Během vývoje aplikace pracujeme výhradně na adrese \texttt{localhost}, nelze tedy reálně otestovat, za jak dlouho dorazí odpověď, pokud je dotaz poslán ze zařízení klienta na vzdálený server. V~případě komunikace v~rámci \texttt{localhost} trvá zpracování dotazu přibližně $50\,$ms. Máme tedy desetinásobnou rezervu vzhledem k~požadavku získání dat do $500\,$ms, což by mělo být dostačující. V~opačném případě bychom museli implementovat mechanismus cachování.
 
 \subsubsection{Možnosti cachování}
 
-Cachování by zrychlilo načítání výsledků při listování více stranami receptů a také během navigace v historii prohlížeče. Na druhou stranu by zaneslo do aplikace dodatečnou komplexitu. Očekáváme, že častějším scénářem vyhledávání bude spíše experimentování s různými filtry než prohlížení spousty stránek výsledků se stejnými filtry. Při rychlém střídání filtrů nám běžné cachování nepomůže, museli bychom implementovat složitější řešení s cachováním nejčastějších dotazů. V aktuální fázi se tedy této optimalizaci věnovat nebudeme.
+Cachování by zrychlilo načítání výsledků při listování více stranami receptů a~také během navigace v~historii prohlížeče. Na druhou stranu by zaneslo do aplikace dodatečnou komplexitu. Očekáváme, že častějším scénářem vyhledávání bude spíše experimentování s~různými filtry než prohlížení spousty stránek výsledků se stejnými filtry. Při rychlém střídání filtrů nám běžné cachování nepomůže, museli bychom implementovat složitější řešení s~cachováním nejčastějších dotazů. V~aktuální fázi se tedy této optimalizaci věnovat nebudeme.
 
 \subsection{Implementace vyhledávání receptů}
 
-V této sekci se podíváme na vybrané aspekty klíčové funkcionality naší aplikaci, tedy samotného vyhledávání receptů na základě filtrů.
+V~této sekci se podíváme na vybrané aspekty klíčové funkcionality naší aplikaci, tedy samotného vyhledávání receptů na základě filtrů.
 
 \subsubsection{Fasetový našeptávač}
 
-Zadávání vyhledávacích filtrů implementujeme pomocí knihovny Material UI a její komponenty \texttt{Autocomplete}. Ta nabízí spoustu užitečných funkcí za cenu poměrně jednoduché konfigurace prostřednictvím props, samozřejmě má ale i své limity. Největším omezením je pro nás maximální počet $2\,000$ položek našeptávače. Větší počet sice zakázán není, rychlost renderování seznamu položek ale rapidně klesá, což způsobuje dojem zamrznutí komponenty. My jsme přitom připravili více než  $5\,000$ vyhledávacích ingrediencí, které kvůli tomuto omezení nemůžeme nabídnout v rámci jednoho seznamu. Nicméně při ručním psaní názvu ingredience se nabízené položky aktualizují a jejich počet brzy klesá pod povolenou hranici $2\,000$ slov. Vždy zobrazíme maximálně prvních $2\,000$ položek na základě jejich oblíbenosti, tedy dle počtu receptů, ve kterých se vyskytují.
+Zadávání vyhledávacích filtrů implementujeme pomocí knihovny Material~UI a~její komponenty \texttt{Autocomplete}. Ta nabízí spoustu užitečných funkcí za cenu poměrně jednoduché konfigurace prostřednictvím props, samozřejmě má ale i~své limity. Největším omezením je pro nás maximální počet $2\,000$ položek našeptávače. Větší počet sice zakázán není, rychlost renderování seznamu položek ale rapidně klesá, což způsobuje dojem zamrznutí komponenty. My jsme přitom připravili více než $5\,000$ vyhledávacích ingrediencí, které kvůli tomuto omezení nemůžeme nabídnout v~rámci jednoho seznamu. Nicméně při ručním psaní názvu ingredience se nabízené položky aktualizují a~jejich počet brzy klesá pod povolenou hranici $2\,000$ slov. Vždy zobrazíme maximálně prvních $2\,000$ položek na základě jejich oblíbenosti, tedy dle počtu receptů, ve kterých se vyskytují.
 
 \subsubsection{Manuální zadávání filtrů}
 
-Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, zpřístupníme také vyhledávání na základě vlastních výrazů. Uživatel si tak může vybrat způsob vyhledávání, který lépe vyhovuje jeho potřebám. Častější pravděpodobně bude vyhledávání podle nabízených filtrů, u kterých je předem známý počet výsledků. Nicméně jsou i situace, kdy se hodí vyzkoušet vlastní filtr --- například pokud máme přesné množství nějaké suroviny, můžeme zkusit vyhledat recepty vyžadující stejné množství. Ukázky přesnějších filtrů:
+Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, zpřístupníme také vyhledávání na základě vlastních výrazů. Uživatel si tak může vybrat způsob vyhledávání, který lépe vyhovuje jeho potřebám. Častější pravděpodobně bude vyhledávání podle nabízených filtrů, u~kterých je předem známý počet výsledků. Nicméně jsou i~situace, kdy se hodí vyzkoušet vlastní filtr --- například pokud máme přesné množství nějaké suroviny, můžeme zkusit vyhledat recepty vyžadující stejné množství. Ukázky přesnějších filtrů:
 \begin{code}
 600 g chicken
 1/4 cup yoghurt
@@ -455,9 +456,7 @@ Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, 
 
 \subsubsection{Zvýraznění ingrediencí}
 
-Filtrování receptů na základě ingrediencí je primárním kritériem vyhledávání. Proto tento způsob vyhledávání podpoříme zvýrazněním vyhledávaných surovin v seznamu všech ingrediencí nalezených receptů. Součástí odpovědi serveru aplikace je mapování receptů a nalezených ingrediencí. Zvýrazněná část textu je označena řetězcem reprezentujícím tag \texttt{<em>}. Pro správné zobrazení musíme celý text \texttt{"}\texttt{<em>ingredient</em>"} nahradit odpovídajícím React elementem. K tomuto účelu využijeme balíček \texttt{react-string-replace} a vytvoříme tag \texttt{<strong>} s obsahem ke zvýraznění:
-\begingroup
-\samepage
+Filtrování receptů na základě ingrediencí je primárním kritériem vyhledávání. Proto tento způsob vyhledávání podpoříme zvýrazněním vyhledávaných surovin v~seznamu všech ingrediencí nalezených receptů. Součástí odpovědi serveru aplikace je mapování receptů a~nalezených ingrediencí. Pro správné zobrazení musíme celý text \texttt{"}\texttt{<em>ingredient</em>"} nahradit React elementem \texttt{<strong>} s odpovídajícím obsahem. Využijeme balíček \texttt{react-string-replace}:
 \begin{code}
 reactStringReplace(
   ingredient,
@@ -466,5 +465,4 @@ reactStringReplace(
 );
 \end{code}
 %$
-\endgroup
-Navíc musíme zkontrolovat, jestli text ingrediencí neobsahuje nějaký odkaz, například na jiný recept nebo ingredienci. Pro vyřešení odkazů potřebujeme opět zapojit funkci \texttt{reactStringReplace} a nahradit odkaz elementem \texttt{Link}.
+Navíc musíme zkontrolovat, jestli text ingrediencí neobsahuje nějaký odkaz, například na jiný recept nebo ingredienci. Pro vyřešení odkazů potřebujeme opět zapojit funkci \texttt{reactStringReplace} a~nahradit odkaz elementem \texttt{Link}.
