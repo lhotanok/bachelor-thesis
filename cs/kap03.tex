@@ -7,13 +7,14 @@ Před zahájením vývoje aplikace je potřeba nainstalovat všechny potřebné 
 \begin{itemize}
     \item Node.js
     \item Python
+    \item Docker
     \item Apache CouchDB
     \item Apache Solr
     \item Silk Workbench
     \item Apify CLI
 \end{itemize}
 
-V~řešení využijeme také řadu knihoven, které budeme instalovat pouze v~rámci projektu pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže je lze snadno nainstalovat prostřednictvím příkazu \texttt{npm install}, případně ekvivalentního \texttt{yarn install}.
+V~řešení využijeme také řadu knihoven, které budeme instalovat pouze v~rámci projektu pomocí výchozího správce balíčků npm pro Node.js. Tyto knihovny vždy uvedeme na seznamu závislostí projektu, takže je lze snadno nainstalovat prostřednictvím příkazu \texttt{npm\,install}, případně ekvivalentního \texttt{yarn\,install}.
 
 Co se týče výběru programovacích jazyků, přípravu dat vyřešíme pomocí vzájemně nezávislých skriptů psaných v~jazyce JavaScript. Samotnou aplikaci včetně serverové a~klientské vrstvy již napíšeme jazykem TypeScript, který je potřeba následně transpilovat do JavaScriptu. Tento dodatečný krok přidává komplexitu při spouštění kódu, proto jej vynecháme u~jednoduchých skriptů připravujících dokumenty pro databázi a~Solr. Zároveň ale přináší typovou kontrolu, kterou velmi oceníme v~komplexnější aplikaci a~to zejména při práci s~externími knihovnami, jejichž rozhraní není vždy perfektně zdokumentováno.
 
@@ -150,7 +151,7 @@ Pro nalezení linků mezi ingrediencemi z~našich datasetů a~entitami z~DBpedia
 
 Podklady pro extrakci dat ze znalostního grafu DBpedia jsou umístěny v~adresáři \texttt{data/resources/dbpedia}. Přiložený skript není určen pro samostatné spouštění, pouze poskytuje rozhraní pro skripty konkrétních datasetů uvnitř podadresářů \texttt{rdf-data}. Před zahájením extrakce vždy nejprve identifikujeme entity, ke kterým potřebujeme zjistit dodatečné informace. Jakmile máme IRI adresy připraveny, teoreticky bychom mohli vytvořit jeden společný SPARQL dotaz pro všechny entity a~ten odeslat na DBpedia SPARQL endpoint. Dotaz by ale mohl skončit příliš dlouhý a~nenechal by prostor pro škálování.
 
-Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $20$ IRI adresami. Tyto dotazy zpracujeme postupně a~výsledky uložíme do společného JSON datasetu. Šablona dotazu konstruujícího RDF graf je umístěná v~souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou pomocí regulárních výrazů vkládány do množiny tzv.~\texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
+Zvolíme tedy alternativní řešení --- dynamicky vytvoříme sadu dotazů stejného formátu, každý s~přibližně $5$ IRI adresami. Počet adres musí zůstat nízký, neboť praktický test ukázal, že se jinak nevrátí všechny požadované výsledky. Dotazy zpracujeme paralelně a~výsledky uložíme do společného JSON datasetu. Šablona dotazu konstruujícího RDF graf je v~souboru \texttt{ingredients-dbpedia.sparql}. IRI adresy ingrediencí jsou pomocí regulárních výrazů vkládány do množiny \texttt{VALUES}. Dotaz ve zjednodušené podobě vypadá následovně:
 
 \begin{code}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -196,7 +197,7 @@ Související soubory jsou uloženy v~destinaci: \texttt{data/resources/wikidata
 
 Pro uložení dat jsme vybrali dokumentový databázový systém CouchDB z~důvodů popsaných v~kapitole o~architektuře aplikace.  S~CouchDB můžeme komunikovat přes webové rozhraní skrze aplikaci Fauxton, pomocí REST~API nebo prostřednictvím již zmíněné knihovny v~prostředí Node.js. Pro automatizované nahrávání dokumentů využijeme oficiální knihovnu Nano\footnote{https://www.npmjs.com/package/nano}.
 
-S~velikostí našeho projektu si můžeme dovolit při nahrávání nových dat nejprve stávající data odstranit a~poté je vložit do čisté databáze. Kdybychom totiž chtěli dokumenty aktualizovat, potřebovali bychom u~každého z~nich poskytnout aktuální verzi, což by pro přepsání celé databáze byl zbytečně komplikovaný postup. S~rostoucím počtem dokumentů bychom ale nejspíše museli přistoupit na aktualizaci dat namísto jejich odstraňování a~opětovného nahrávání, neboť již pro přidání kolekce o~velikosti $50\,000$ dokumentů se pohybujeme v~řádu delších minut.
+S~velikostí našeho projektu si můžeme dovolit při nahrávání nových dat nejprve stávající data odstranit a~poté je vložit do čisté databáze. Kdybychom totiž chtěli dokumenty aktualizovat, potřebovali bychom u~každého z~nich poskytnout aktuální verzi, což by pro přepsání celé databáze byl zbytečně komplikovaný postup. Proces ale musíme paralelizovat, neboť již pro přidání kolekce o~velikosti $50\,000$ dokumentů se při sériovém řešení pohybujeme v~řádu delších minut.
 
 S~knihovnou Nano pracujeme na $2$~místech projektu. Poprvé v~rámci přípravy a~nahrání dat do CouchDB, podruhé na backendu aplikace pro získání uložených dokumentů na základě identifikátorů. Oba přístupy do databáze vyžadují přihlašovací heslo --- uložíme jej jako proměnnou prostředí, ke které se v~kódu dostaneme přes rozhraní \texttt{process.env}. Instanci CouchDB spustíme na výchozím portu $5984$.
 
@@ -243,6 +244,8 @@ V~rámci skriptu \texttt{documents-manager.js} jsou načteny dokumenty receptů 
     \item Odstraníme všechny dokumenty ze Solr.
     \item Nahrajeme dokumenty s~vyplněnými položkami \texttt{\underline{{ }}ingredientsFacet} do Solr.
 \end{enumerate}
+
+Pro snadnější nalezení filtrů na základě určitého zaměření vytvoříme vlastní kolekce klíčových slov pomocí manuální kontroly existujících tagů. Například recepty z~Food.com mají v~rámci tagů přiřazeny názvy kuchyní, typ pokrmu nebo dietní kategorii. Naším úkolem bude tato klíčová slova identifikovat a~přesunout z~obecných tagů do vlastních skupin, které budou v~uživatelském prostředí odpovídat samostatným filtrům.
 
 \subsection{Vyhledávací dotazy}
 
@@ -407,7 +410,7 @@ API dokumentace jednotlivých komponent je dostupná v~adresáři \texttt{docs} 
 
 \subsubsection{Sdílené komponenty a~funkce}
 
-Posledním podadresářem uvnitř \texttt{src} je adresář \texttt{shared}. Najdeme zde již zná\-mé adresáře \texttt{types} s~typy pro TypeScript a~\texttt{components} s~komponentami využívanými na více místech aplikace. Dále adresář \texttt{hooks} vyhrazený pro vlastní Hooks. Aktuálně obsahuje jediný soubor \texttt{use-http.tsx} s~exportovanou funkcí \texttt{useHttp}. Tu využijeme všude, kde potřebujeme asynchronně komunikovat se serverem aplikace: 
+Posledním podadresářem uvnitř \texttt{src} je adresář \texttt{shared}. Najdeme zde již zná\-mé adresáře \texttt{types} s~typy pro TypeScript a~\texttt{components} s~komponentami využívanými na více místech aplikace. Dále se zde nachází adresář \texttt{hooks} vyhrazený pro vlastní Hooks. Aktuálně obsahuje soubory \texttt{use-snackbar.tsx} zajišťující notifikace a~\texttt{use-http.tsx} s~exportovanou funkcí \texttt{useHttp}. Tu využijeme všude, kde potřebujeme asynchronně komunikovat se serverem aplikace: 
 \begin{itemize}
     \item V~komponentě \texttt{Recipes} pro získání receptů na základě vyhledávacích parametrů.
     \item V~komponentě \texttt{RecipeDetail} pro vyhledání receptu dle id z~URL.

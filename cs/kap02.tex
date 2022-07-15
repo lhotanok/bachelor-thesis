@@ -111,9 +111,9 @@ Z~nutričních hodnot se zaměříme na energii v~kaloriích nebo kilojoulech, d
 
 V~rámci fáze čištění dat potřebujeme extrahovaná data převést do formátu vhodného k~prezentaci koncovému uživateli. Jednotlivé kroky procesu čištění mohou být rozloženy do více míst přípravy dat. Již během extrakce dat probíhá odstranění mezer a~znaků nového řádku na okrajích řetězců. Dále je potřeba se vypořádat se znaky, které jsou kvůli vnoření v~HTML dokumentu kódovány jinými znaky, aby bylo zajištěno jejich korektní zobrazení. Takové znaky se vyskytují např. v~extrahovaných JSON-LD dokumentech, před jejich uložením do databáze tedy provedeme dekódování. Rekurzivně projdeme obsah každého objektu načteného z~JSON-LD dokumentu a~všechny řetězce dekódujeme s~využitím open-source knihoven pro Node.js. V~našem řešení integrujeme knihovny \texttt{html-escaper} a~\texttt{html-entities} dostupné přes správce balíčků npm.
 
-Dále jsme se rozhodli z~vyhledávání vyřadit recepty bez fotografie, které lze identifikovat a~přeskočit již během fáze extrakce nebo následně při ukládání do databáze, případně až při tvorbě dokumentů pro vyhledávací platformu Solr. Zvolíme poslední způsob, recepty tedy uložíme do vlastní databáze bez ohledu na přítomnost jejich obrázků. Díky tomu budeme mít v~budoucnu snadnou cestu k~využití zbývajících receptů bez fotografií, ať už pro účely strojového učení nebo i~zobrazení uživateli, pokud by větší nabídka receptů výrazně převážila nevýhodu absence ilustračních fotografií.
+Dále jsme se rozhodli z~vyhledávání vyřadit recepty bez fotografie, které lze identifikovat a~přeskočit již během fáze extrakce nebo následně při ukládání do databáze, případně až při tvorbě dokumentů pro vyhledávací platformu Solr. Recepty bez obrázků nebudeme pro úsporu místa extrahovat a~tedy ani ukládat do vlastní databáze. Nicméně pokud bychom je v~budoucnu potřebovali například jako podklad ke strojovému učení, snadno tento parametr změníme v~extraktoru a~získáme novou sadu receptů včetně těch bez ilustrační fotografie.
 
-Také data k~ingrediencím budou vyžadovat významné čištění. V~datasetu Food.com Recipes and~Interactions máme k~dispozici přibližně $8\,000$ unikátních ingrediencí. Co nejvíce z~nich bychom chtěli nabídnout uživateli v~rámci našeptávače ve vyhledávání dle ingrediencí. Pro tento účel názvy ingrediencí převedeme do estetičtějšího formátu s~velkým počátečním písmenem. Po manuální kontrole seznamu ingrediencí ale narazíme na řadu slov, která se mezi suroviny dostala omylem vlivem chybného parsování jmen ingrediencí. Nebudeme zde uvádět kompletní výčet, typicky se ale jedná o~názvy jednotek měření nebo obecné fragmenty ingrediencí, které samy o~sobě žádnou ingredienci nepředstavují (např. samostatná slova \texttt{clove}, \texttt{seed}, \texttt{extract}, která by byla validní pouze v~kontextu typu \texttt{garlic clove}, \texttt{sesame seed} a~\texttt{vanilla extract}). Vzhledem k~velkému počtu ingrediencí navrhneme heuristiku čištění pomocí regulárních výrazů. Zaměříme se zejména na nejčastěji používané ingredience, které budou zobrazeny v~horní části našeptávače. Pro potřeby našeptávače nastavíme limit maximálního počtu slov ingredience a~to na hodnotu $3$. Pro mapování na entity ze znalostních grafů ale využijeme původní sadu ingrediencí bez omezení počtu slov.
+Také data k~ingrediencím budou vyžadovat významné čištění. V~datasetu Food.com Recipes and~Interactions máme k~dispozici přibližně $8\,000$ unikátních ingrediencí. Co nejvíce z~nich bychom chtěli nabídnout uživateli v~rámci našeptávače ve vyhledávání dle ingrediencí. Pro tento účel názvy ingrediencí převedeme do estetičtějšího formátu s~velkým počátečním písmenem. Po manuální kontrole seznamu ingrediencí ale narazíme na řadu slov, která se mezi suroviny dostala omylem vlivem chybného parsování jmen ingrediencí. Nebudeme zde uvádět kompletní výčet, typicky se ale jedná o~názvy jednotek měření nebo obecné fragmenty ingrediencí, které samy o~sobě žádnou ingredienci nepředstavují (např. samostatná slova \texttt{clove}, \texttt{seed}, \texttt{extract}, která by byla validní pouze v~kontextu typu \texttt{garlic\,clove}, \texttt{sesame\,seed} a~\texttt{vanilla\,extract}). Vzhledem k~velkému počtu ingrediencí navrhneme heuristiku čištění pomocí regulárních výrazů. Zaměříme se zejména na nejčastěji používané ingredience, které budou zobrazeny v~horní části našeptávače. Pro potřeby našeptávače nastavíme limit maximálního počtu slov ingredience a~to na hodnotu $3$. Pro mapování na entity ze znalostních grafů ale využijeme původní sadu ingrediencí bez omezení počtu slov.
 
 S~normalizovanými ingrediencemi z~Food.com Recipes and~Interactions souvisí další problém --- nejsou přiřazeny ke všem receptům z~datasetu. Texty surovin sice využijeme z~extrahovaného JSON-LD, normalizované ingredience ale potřebujeme k~propojení s~informacemi z~grafů DBpedia a~Wikidata. Recepty bez normalizovaných ingrediencí tedy musíme projít a~pro každou jejich přísadu zkusit na základě prostého textu nalézt co nejbližší shodu s~některou z~normalizovaných ingrediencí. Pro zjednodušení budeme akceptovat pouze přesné shody, přestože nám tímto způsobem může část ingrediencí uniknout, neboť mohou být v~prostém textu uvedeny v~jiném pádě nebo čísle.
 
@@ -148,16 +148,18 @@ Schéma receptu navrhneme dle požadavků na vlastnosti, podle kterých potřebu
 Schéma dokumentu receptu uloženého v~Solr bude následující (jedná se pouze o~ilustrační schéma, kde typy odpovídají standardním typům dle specifikace Solr, nikoli běžně dostupným typům formátu JSON):
 \begin{code}
 {
+    id: string
     name: text_en,
     description: text_en,
     ingredients: text_en,
     tags: text_en,
-    cuisines: text_en,
+    cuisine: text_en,
+    diets: text_en,
+    time: text_en,
+    mealTypes: text_en,
     rating: pfloat,
     reviewsCount: pint,
     stepsCount: pint,
-    cookMinutes: pint,
-    prepMinutes: pint,
     totalMinutes: pint,
     image: string,
     date: string,
@@ -174,7 +176,7 @@ Schéma dokumentu receptu uloženého v~Solr bude následující (jedná se pouz
 \end{code}
 %$
 
-Ne všechny obsažené položky nutně využijeme v~první verzi naší prezentační vrstvy (například datum a~počet minut samotné přípravy či vaření pokrmu). Jejich zahrnutím ale usnadníme přidávání nových funkcí typu třídění výsledků na základě data publikace nebo vyřazení receptů, u kterých nestačí pouhá příprava ze syrových ingrediencí a~je potřeba počítat s~vařením. Větší výběr informací nám také umožní jednoduchou iteraci nad různými rozloženími uživatelských obrazovek, což je užitečné při hledání vhodného designu.
+Některé položky obsahují více hodnot, jmenovitě se jedná o: \texttt{ingredients}, \texttt{tags}, \texttt{diets}, \texttt{time} a \texttt{mealTypes}. Ne všechny obsažené položky nutně využijeme v~první verzi naší prezentační vrstvy (například datum nebo přesné nutriční hodnoty). Jejich zahrnutím ale usnadníme přidávání nových funkcí typu třídění výsledků na základě data publikace nebo vyřazení receptů na základě překročení limitu pro určitou nutriční hodnotu. Větší výběr informací nám také umožní jednoduchou iteraci nad různými rozloženími uživatelských obrazovek, což je užitečné při hledání vhodného designu.
 
 \subsection{Backend}
 
