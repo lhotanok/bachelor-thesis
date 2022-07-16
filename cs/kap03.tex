@@ -171,6 +171,7 @@ WHERE {
         ##INGREDIENTS##
     }
 
+    # Label is the only required property
     ?ingredient rdfs:label ?label .
     FILTER (LANG(?label) = "en")
     
@@ -179,7 +180,6 @@ WHERE {
         FILTER (LANG(?comment) = "en")
     }
 
-    # Image with description(s)
     OPTIONAL {?ingredient dbo:thumbnail ?thumbnail .}
 }
 \end{code}
@@ -245,7 +245,7 @@ V~rámci skriptu \texttt{documents-manager.js} jsou načteny dokumenty receptů 
     \item Nahrajeme dokumenty s~vyplněnými položkami \texttt{\underline{{ }}ingredientsFacet} do Solr.
 \end{enumerate}
 
-Pro snadnější nalezení filtrů na základě určitého zaměření vytvoříme vlastní kolekce klíčových slov pomocí manuální kontroly existujících tagů. Například recepty z~Food.com mají v~rámci tagů přiřazeny názvy kuchyní, typ pokrmu nebo dietní kategorii. Naším úkolem bude tato klíčová slova identifikovat a~přesunout z~obecných tagů do vlastních skupin, které budou v~uživatelském prostředí odpovídat samostatným filtrům.
+Pro snadnější nalezení filtrů na základě určitého zaměření vytvoříme vlastní kolekce klíčových slov pomocí manuální kontroly existujících tagů. Například recepty z~Food.com mají v~rámci tagů přiřazeny názvy kuchyní, typ pokrmu nebo dietní kategorii. Naším úkolem bude tato klíčová slova identifikovat a~přesunout z~obecných tagů do vlastních skupin, které budou v~uživatelském rozhraní odpovídat samostatným filtrům.
 
 \subsection{Vyhledávací dotazy}
 

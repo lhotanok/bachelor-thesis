@@ -167,13 +167,13 @@ This thesis aims to develop a web application for searching recipes. The search 
 
 Konfiguraci aplikace rozdělíme do $3$ fází:
 
-\begin{itemize}
+\begin{enumerate}
     \item Příprava dat
     \item Persistence dat
     \item Spuštění aplikace
-\end{itemize}
+\end{enumerate}
 
-Předpokládá se nainstalovaný runtime Node.js pro vývoj v~jazyce JavaScript. Systémy Apache Solr a~Silk Workbench byly zprovozněny pomocí Dockeru jako samostatné kontejnery, je ale možné zvolit jiný způsob instalace. Ke zpracování dat receptů a~ingrediencí jsou přiloženy shellové skripty pro systémy Windows i~Linux. Počínaje konfiguračními skripty \texttt{build.bat} respektive \texttt{build.sh} z~adresáře \texttt{data} se rekurzivně volají skripty z~vnořených adresářů. Dále jsou připraveny skripty \texttt{run.bat} a~\texttt{run.sh} pro spuštění extrakce, konverze dat a~jejich následné nahrání do databáze. Jednotlivé JavaScriptové programy lze spouštět samostatně pomocí příkazu \texttt{node}. Často budeme potřebovat spustit jen některé fáze, zejména extrakce bude vzhledem k~objemu dat výjimečnou záležitostí. Shellové skripty tak slouží hlavně k~definici správného pořadí jednotlivých skriptů. Konstanty potřebné pro konfiguraci jsou obvykle soustředěny v~souborech \texttt{constants.js} a~\texttt{config.js}. Jejich hodnoty lze přizpůsobit dle potřeby, například omezit počet receptů, které se mají extrahovat z~webové aplikace pomocí Apify actora.
+Předpokládá se nainstalovaný runtime Node.js pro vývoj v~jazyce JavaScript s výchozím správcem balíčků npm. Systémy Apache Solr a~Silk Workbench byly zprovozněny pomocí Dockeru jako samostatné kontejnery, je ale možné zvolit jiný způsob instalace. Ke zpracování dat receptů a~ingrediencí jsou přiloženy shellové skripty pro systémy Windows i~Linux. Počínaje konfiguračními skripty \texttt{build.bat}, respektive \texttt{build.sh}, z~adresáře \texttt{data} se rekurzivně volají skripty z~vnořených adresářů. Dále jsou připraveny skripty \texttt{run.bat} a~\texttt{run.sh} pro spuštění extrakce, konverze dat a~jejich následné nahrání do databáze. Jednotlivé JavaScriptové programy lze spouštět samostatně pomocí příkazu \texttt{node\,script.js}. Často budeme potřebovat spustit jen některé fáze, zejména extrakce bude vzhledem k~objemu dat výjimečnou záležitostí. Shellové skripty tak slouží hlavně k~definici správného pořadí jednotlivých skriptů. Konstanty potřebné pro konfiguraci jsou obvykle soustředěny v~souborech \texttt{constants.js} a~\texttt{config.js}. Jejich hodnoty lze přizpůsobit dle potřeby, například omezit počet receptů, které se mají extrahovat z~webové aplikace pomocí Apify actora.
 
 \subsection{Příprava dat}
 
@@ -207,10 +207,58 @@ Kód aplikace je soustředěn v~adresáři \texttt{app}, který je dále rozděl
 \section{Hledání linků mezi datasety ingrediencí}
 
 \begin{figure}[h!]\centering
-\includegraphics[height=205mm]{../img/silk-workbench}
+\includegraphics[height=220mm]{../img/silk-workbench}
 \caption{Grafické znázornění úlohy linkování v aplikaci Silk Workbench.}
 \label{obr0a:silk-workbench}
 \end{figure}
+
+\section{Výsledky testování SUS}
+
+Pro otestování UX designu naší aplikace jsme využili nástroj System Usability Scale neboli SUS \citep{sus-test}. Testující dostali $5$ jednoduchých úkolů uvedených v kapitole o testování a vyzkoušeli si skrze ně běžnou práci s aplikací. Posledním úkolem bylo zodpovědět $10$ standardizovaných otázek dle SUS dotazníku na škále od $1$ do $5$, kde $1$ představuje \uv{silně nesouhlasím} a $5$ naopak \uv{silně souhlasím}. 
+
+\subsection{Formát dotazníku}
+Otázky jsme dle vzoru z anglického zdroje zformulovali následovně \citep{sus-adobe}:
+
+\begin{enumerate}
+    \item Myslím, že bych rád aplikaci využíval pravidelně.
+    \item Aplikace mi připadá zbytečně složitá.
+    \item S aplikací se mi pracovalo snadno.
+    \item Myslím, že bych potřeboval technickou podporu.
+    \item Myslím, že funkce byly v aplikaci dobře integrovány.
+    \item Zdá se mi, že aplikace byla příliš nekonzistentní.
+    \item Domnívám se, že většina lidí by se naučila aplikaci používat velmi rychle.
+    \item Ovládání aplikace mi připadalo dost těžkopádné.
+    \item Při používání aplikace jsem se cítil velmi jistý.
+    \item Musel jsem se naučit hodně věcí, než jsem mohl začít aplikaci používat.
+\end{enumerate}
+
+\subsection{Postup výpočtu skóre}
+
+Algoritmus výpočtu finálního skóre je následující \citep{sus-adobe}:
+
+\begin{enumerate}
+    \item Zvol proměnnou $X$ jako součet celkového skóre otázek s lichým pořadím snížený o hodnotu $5$.
+    \item Zvol proměnnou $Y$ jako výsledek celkového skóre otázek se sudým pořadím odečtený od $25$.
+    \item Sečti hodnoty proměnných $X$, $Y$ a výsledek vynásob koeficientem $2,5$.
+\end{enumerate}
+
+$X := \sum x_i$ pro $i \in \{1,3,5,7,9\}$
+
+$Y := \sum y_j$ pro $j \in \{2,4,6,8,10\}$
+
+$Z := ( \,X + Y) \, \ast 2,5$
+
+\subsection{Výpočet skóre}
+
+Odpovědi vyjádříme pomocí uspořádaných $10$-tic v pořadí od $1$. do $10$. odpovědi a~s~indexem odpovídajícím pořadí respondenta.
+
+$v_1 := (\,4,1,4,1,5,2,5,1,5,1)\,$
+
+$X_1 := (\,4 + 4 + 5 + 5 + 5) - 5 = 18\,$
+
+$Y_1 := 25 - (\,1 + 1 + 2 + 1 + 1) = 19\,$
+
+$Z := ( \,18 + 25) \, \ast 2,5 = 92,5$
 
 \openright
 \end{document}
