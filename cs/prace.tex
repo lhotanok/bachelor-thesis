@@ -136,6 +136,7 @@ This thesis aims to develop a web application for searching recipes. The search 
 \include{kap02}
 \include{kap03}
 \include{kap04}
+\include{kap05}
 
 \include{zaver}
 
@@ -173,7 +174,7 @@ Konfiguraci aplikace rozdělíme do $3$ fází:
     \item Spuštění aplikace
 \end{enumerate}
 
-Předpokládá se nainstalovaný runtime Node.js pro vývoj v~jazyce JavaScript s výchozím správcem balíčků npm. Systémy Apache Solr a~Silk Workbench byly zprovozněny pomocí Dockeru jako samostatné kontejnery, je ale možné zvolit jiný způsob instalace. Ke zpracování dat receptů a~ingrediencí jsou přiloženy shellové skripty pro systémy Windows i~Linux. Počínaje konfiguračními skripty \texttt{build.bat}, respektive \texttt{build.sh}, z~adresáře \texttt{data} se rekurzivně volají skripty z~vnořených adresářů. Dále jsou připraveny skripty \texttt{run.bat} a~\texttt{run.sh} pro spuštění extrakce, konverze dat a~jejich následné nahrání do databáze. Jednotlivé JavaScriptové programy lze spouštět samostatně pomocí příkazu \texttt{node\,script.js}. Často budeme potřebovat spustit jen některé fáze, zejména extrakce bude vzhledem k~objemu dat výjimečnou záležitostí. Shellové skripty tak slouží hlavně k~definici správného pořadí jednotlivých skriptů. Konstanty potřebné pro konfiguraci jsou obvykle soustředěny v~souborech \texttt{constants.js} a~\texttt{config.js}. Jejich hodnoty lze přizpůsobit dle potřeby, například omezit počet receptů, které se mají extrahovat z~webové aplikace pomocí Apify actora.
+Předpokládá se nainstalovaný runtime Node.js pro vývoj v~jazyce JavaScript s výchozím správcem balíčků npm. Systémy Apache Solr a~Silk Workbench byly zprovozněny pomocí Dockeru jako samostatné kontejnery, je ale možné zvolit jiný způsob instalace. Ke zpracování dat receptů a~ingrediencí jsou přiloženy shellové skripty pro systémy Windows i~Linux. Počínaje konfiguračními skripty \texttt{build.bat}, respektive \texttt{build.sh}, z~adresáře \texttt{data} se rekurzivně volají skripty z~vnořených adresářů. Dále jsou připraveny skripty \texttt{run.bat} a~\texttt{run.sh} pro spuštění extrakce, konverze a~následného nahrání dokumentů do databáze. Jednotlivé JavaScriptové programy lze spouštět samostatně příkazem \texttt{node\,script.js}. Často budeme potřebovat spustit jen některé fáze, zejména extrakce bude vzhledem k~objemu dat výjimečnou záležitostí. Shellové skripty tak často poslouží spíše jako dokumentace správného pořadí jednotlivých skriptů. Konstanty potřebné pro konfiguraci jsou obvykle soustředěny v~souborech \texttt{constants.js} a~\texttt{config.js}. Jejich hodnoty lze přizpůsobit dle potřeby, například omezit počet receptů, které se mají extrahovat z~webové aplikace pomocí Apify actora.
 
 \subsection{Příprava dat}
 
@@ -187,21 +188,21 @@ Předpokládáme následující nainstalované nástroje:
 
 V~rámci fáze extrakce a~předzpracování dat je potřeba stáhnout datovou sadu \emph{Food.com Recipes and~Interactions}\footnote{https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions} z~Kaggle. Soubory \texttt{RAW\underline{{ }}recipes.csv} a~\texttt{PP\underline{{ }}recipes.csv} patří do adresáře \texttt{data/resources/foodcom/recipes}. Dále je potřeba umístit \texttt{ingr\underline{{ }}map.csv} do \texttt{data/resources/foodcom/ingredients}. Následně jsou připraveny skripty pro konverzi a~extrakci dat z~webových aplikací Food.com a~Allrecipes. Pro spuštění \texttt{run-venv.bat}, eventuálně \texttt{run-venv.sh} uvnitř adresáře \texttt{data/resources/foodcom/ingredients} je potřeba mít aktivováno virtuální prostředí pro vývoj v~jazyce Python s~nainstalovanou knihovnou pickle.
 
-Ve všech adresářích obsahujících soubor \texttt{package.json} je potřeba použít příkaz \texttt{npm\,install}. Inicializace Apify actorů v~adresářích \texttt{food-com-scraper} a~\texttt{allrecipes-scraper} se provede standardními příkazy \texttt{npm\,install} a~dále \texttt{apify\,init}, který vytvoří potřebné podadresáře včetně \texttt{apify\underline{{ }}storage}. Zejména adresáře s~actory jsou zcela nezávislé na kontextu zbytku aplikace, aby bylo co nejsnadnější je migrovat na cloudovou platformu Apify, pro kterou jsou primárně určeny.
+Ve všech adresářích obsahujících soubor \texttt{package.json} je potřeba použít příkaz \texttt{npm\,install}. Inicializace Apify actorů v~adresářích \texttt{food-com-scraper} a~\texttt{allrecipes-scraper} se provede standardními příkazy \texttt{npm\,install} a~dále \texttt{apify\,init}, který vytvoří potřebné podadresáře včetně \texttt{apify\underline{{ }}storage}. Zejména adresáře s~actory jsou zcela nezávislé na kontextu zbytku aplikace, aby bylo co nejsnadnější je v případě potřeby migrovat na cloudovou platformu Apify, pro kterou jsou primárně určeny.
 
-Dále je potřeba zkopírovat vygenerované datasety ve formátu Turtle do aplikace Silk Workbench a~vytvořit pro ně úlohy linkování s~otevřenými znalostními grafy DBpedia a~Wikidata. V~podadresářích \texttt{rdf-data} uvnitř adresářů \texttt{foodcom} a~\texttt{allrecipes} je uložen konfigurační XML soubor vygenerovaný ze Silk Workbench. Pomocí něj je možné úlohu spustit z~příkazové řádky, naše řešení ale tohoto přístupu nevyužívá. Datasety s~propojenými entitami jsou očekávány v~adresářích \texttt{rdf-data} ve formátu N-Triples.
+Dále je potřeba zkopírovat vygenerované datasety ingrediencí v RDF formátu Turtle z~adresářů \texttt{ingredients} do aplikace Silk Workbench a~vytvořit pro ně úlohy linkování s~otevřenými znalostními grafy DBpedia a~Wikidata. V~podadresářích \texttt{rdf-data} uvnitř adresářů \texttt{foodcom} a~\texttt{allrecipes} je uložen konfigurační XML soubor vygenerovaný ze Silk Workbench. Pomocí něj je možné úlohu spustit z~příkazové řádky, naše řešení ale tohoto přístupu nevyužívá. Datasety s~propojenými entitami jsou očekávány v~adresářích \texttt{rdf-data} ve formátu N-triples.
 
 \subsection{Persistence dat}
 
-Předpokládáme nainstalovanou instanci systému Apache CouchDB s~platnými přihlašovacími údaji a~přístupem do administrace skrze webovou aplikaci Fauxton. Dále instalaci platformy Apache Solr s~vytvořeným jádrem \texttt{recipes}.
+Předpokládáme nainstalovanou instanci systému Apache CouchDB s~platnými přihlašovacími údaji a~přístupem do administrace skrze webovou aplikaci \-Fauxton. Dále instalaci platformy Apache Solr s~vytvořeným jádrem \texttt{recipes}.
 
-Extrahovaná a~vyčištěná data jsou uložena do databáze CouchDB. Příslušné skripty a~konfigurační soubory najdeme v~adresáři \texttt{data/database} a~jsou volány pomocí automatizovaného skriptu run z~kořenového adresáře \texttt{data}. Heslo pro přihlášení do databáze je potřeba uložit jako proměnnou prostředí pod názvem \texttt{COUCHDB\underline{{ }}PASSWORD} nebo změnit nastavení v souboru \texttt{config.js}.
+Extrahovaná a~vyčištěná data jsou ukládána do databáze CouchDB. Příslušné skripty a~konfigurační soubory najdeme v~adresáři \texttt{data/database} a~jsou volány pomocí automatizovaného skriptu \texttt{run} z~kořenového adresáře \texttt{data}. Heslo pro přihlášení do databáze je potřeba uložit jako proměnnou prostředí pod názvem \texttt{COUCHDB\underline{{ }}PASSWORD} nebo změnit nastavení v souboru \texttt{config.js}.
 
 Následuje vytvoření indexů a~odpovídajících dokumentů receptů pro platformu Solr. Související skripty jsou v~adresáři \texttt{data/solr}. Dokumenty receptů jsou extrahovány přímo z~databáze CouchDB, což by mělo usnadnit situaci, kdy by instance CouchDB a~Solr běžely na různých zařízeních.
 
 \subsection{Spuštění aplikace}
 
-Kód aplikace je soustředěn v~adresáři \texttt{app}, který je dále rozdělen na \texttt{frontend} a~\texttt{backend}. K~inicializace obou částí aplikace stačí nainstalovat závislosti dle \texttt{package.json} pomocí \texttt{npm\,install}. Pro následné spuštění serverové části aplikace je potřeba spustit z~umístění \texttt{backend} příkazy \texttt{npm\,run\,build} pro automatickou transpilaci z~TypeScriptu do JavaScriptu a~\texttt{npm\,start} k~samotnému spuštění aplikace. Pro úspěšný start musí být k~dispozici CouchDB i~Solr na adresách specifikovaných v~příslušných souborech \texttt{config.js}. Single-page aplikaci lze spustit pomocí \texttt{npm\,start} z~adresáře \texttt{frontend}. Veškeré změny v~kódu backendu i~frontendu se po uložení automaticky projeví v~aplikaci běžící ve webovém prohlížeči.
+Kód aplikace je soustředěn v~adresáři \texttt{app}, který je dále rozdělen na \texttt{frontend} a~\texttt{backend}. K~inicializace obou částí aplikace stačí nainstalovat závislosti dle \texttt{package.json} pomocí \texttt{npm\,install}. Pro následné spuštění serverové části aplikace je potřeba spustit z~umístění \texttt{backend} příkazy \texttt{npm\,run\,build} pro automatickou transpilaci z~TypeScriptu do JavaScriptu a~\texttt{npm\,start} k~samotnému spuštění aplikace. Pro úspěšný start musí být k~dispozici CouchDB i~Solr na adresách specifikovaných v~příslušných souborech \texttt{config.js}. Single-page aplikaci lze spustit ve vývojářském módu pomocí \texttt{npm\,start} z~adresáře \texttt{frontend}. Veškeré změny v~kódu backendu i~frontendu se po uložení automaticky projeví v~aplikaci běžící ve webovém prohlížeči. Produkční verze aplikace je do adresáře \texttt{frontend/build} generována příkazem \texttt{npm\,run\,build}. Následně lze spustit pomocí \texttt{serve\,-s\,build}.
 
 \pagebreak
 \section{Hledání linků mezi datasety ingrediencí}
@@ -242,15 +243,17 @@ Algoritmus výpočtu finálního skóre je následující \citep{sus-adobe}:
     \item Sečti hodnoty proměnných $X$, $Y$ a výsledek vynásob koeficientem $2,5$.
 \end{enumerate}
 
-$X := \sum x_i$ pro $i \in \{1,3,5,7,9\}$
+Odpověď na i-tou otázku označme $a_i$.
 
-$Y := \sum y_j$ pro $j \in \{2,4,6,8,10\}$
+$X := \sum a_i$ pro $i \in \{1,3,5,7,9\}$
 
-$Z := ( \,X + Y) \, \ast 2,5$
+$Y := \sum a_j$ pro $j \in \{2,4,6,8,10\}$
+
+$Z := ( \,X + Y) \, \cdot 2,5$
 
 \subsection{Výpočet skóre}
 
-Odpovědi vyjádříme pomocí uspořádaných $10$-tic v pořadí od $1$. do $10$. odpovědi a~s~indexem odpovídajícím pořadí respondenta.
+Odpovědi vyjádříme pomocí uspořádaných $10$-tic s~prvky v~pořadí od $1$.~do $10$. odpovědi a~s~indexem odpovídajícím pořadí respondenta.
 
 $v_1 := (\,4,1,4,1,5,2,5,1,5,1)\,$
 
@@ -258,7 +261,7 @@ $X_1 := (\,4 + 4 + 5 + 5 + 5) - 5 = 18\,$
 
 $Y_1 := 25 - (\,1 + 1 + 2 + 1 + 1) = 19\,$
 
-$Z := ( \,18 + 25) \, \ast 2,5 = 92,5$
+$Z := ( \,18 + 25) \, \cdot 2,5 = 92,5$
 
 \openright
 \end{document}
