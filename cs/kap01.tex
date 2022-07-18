@@ -80,7 +80,7 @@ Požadavky aplikace lze méně formálním způsobem popsat pomocí tzv. uživat
     \item Jako milovník řecké a~italské kuchyně chci použít filtrování receptů z~těchto oblastí, abych nemusel procházet detaily receptů a~hledat jejich původ v~popisu.
     \item Jako uživatel, který rád šetří čas, chci znát všechny ingredience daného receptu ještě před otevřením jeho detailu, abych se vyhnul čtení receptů s~příliš mnoha dodatečnými ingrediencemi.
     \item Jako zaneprázdněný student chci snadno najít recepty, které lze připravit za méně než $30$ minut.
-    \item Jako celiak chci hledat pouze recepty bez obsahu lepku, abych nemusel procházet spousty receptů, které si nemohu připravit.
+    \item Jako celiak chci hledat pouze recepty bez obsahu lepku.
     \item Jako vrcholový sportovec chci snadno najít recepty s~vysokým obsahem bílkovin.
     \item Jako nutriční poradce chci u~receptů vidět podrobný rozpis nutričních hodnot, abych daný recept mohl doporučit svým klientům dle jejich stravovacích potřeb.
     \item Jako hostitel očekávající návštěvu potřebuji znát počet porcí, které se základním množstvím surovin připravím, abych toto množství mohl přizpůsobit počtu hostů.
@@ -205,3 +205,19 @@ Tvůrci aplikace si zakládají na vysoké kvalitě publikovaných receptů, kte
 \subsection{Food.com}
 
 Na závěr uveďme aplikaci Food.com, k~níž máme k~dispozici dataset téměř $200\,000$ receptů a~již víme, že k~publikovaným dokumentům poskytuje JSON-LD reprezentaci. Na rozdíl od ostatních aplikací z~této sekce nenabízí funkci vyhledávání dle ingrediencí, ale pouze dle názvu receptu. O~to více by se hodilo použít recepty z~Food.com a~obohatit je o~vyhledávání dle surovin, stejně jako to dělá zmíněný agregátor receptů SuperCook. Naopak zde jako u~první aplikace nacházíme rozšiřující informace k~ingrediencím. Ty jsou dostupné ze stránky s~detailem receptu. Obrazovka detailu ingredience obsahuje různé množství informací v~závislosti na důležitosti suroviny. Za povšimnutí stojí podrobné nutriční informace, náhrady jinými ingrediencemi nebo kombinace s~ostatními přísadami. Pod textovými informacemi následuje seznam populárních receptů s~aktuální ingrediencí, kterým lze listovat s~automatickým načítáním nových výsledků. Tento nápad si dovolíme integrovat ve vlastní aplikaci a~zobrazit připravené karty receptů z~vyhledávací obrazovky také na stránce ingredience. Z~detailu přísady na Food.com je dále možné pokračovat na seznam všech ingrediencí. Odkaz na tuto stránku\footnote{https://www.food.com/about} je v~detailu ingredience možná záměrně skrytý, neboť se nezdá, že by k~němu vedla alternativní cesta ze společného menu. Dle metadat v~HTML dokumentu slovník obsahuje přes $900$ ingrediencí.
+
+\section{Konceptuální UML class diagram}
+
+Na základě provedené analýzy dostupných zdrojů dat navrhneme konceptuální diagram, kde znázorníme zejména entity receptů a~ingrediencí včetně jejich vzájemného propojení. Pro úplnost v~diagramu \ref{obr01:conceptual-diagram} zobrazíme také recenze receptů, přestože se jimi v~první verzi aplikace nebudeme dále zabývat. Jejich zahrnutí by výrazně navýšilo velikost naší datové sady s~recepty, ponecháme je tedy dalšímu vývoji spolu s~modulem přidávání nových recenzí.
+
+Centrální entitou diagramu je recept označený jako \texttt{Recipe}, který obsahuje základní informace včetně jména, popisu, odkazu na obrázek, hodnocení, počtu recenzí nebo času přípravy. Recept je sestaven ze seřazených instrukcí, na základě kterých lze vybraný pokrm připravit. Tyto instrukce zmiňují potřebné ingredience, ty ale zpravidla bývají definované zvlášť spolu s~jejich množstvím a~jednotkou. V~diagramu označíme suroviny receptu jako entity třídy \texttt{SimpleIngredient}. Tyto ingredience budeme na základě jejich jména mapovat na entity ingrediencí ze znalostních grafů reprezentované třídou \texttt{Ingredient}.
+
+Mezi entitami \texttt{Recipe} a~\texttt{Ingredient} existuje souvislost v~podobě nutričních informací, které budeme ukládat u~obou entit. Rozsah informací o~nutričních hodnotách bude zejména u~ingrediencí velmi proměnlivý, neboť byly do znalostních grafů přidány nezávislými uživateli a~neexistuje zde výčet povinných nutričních hodnot. U~receptů budou nutriční hodnoty konzistentnější, neboť recepty pocházejí ze stránek, kde je předpis zpravidla striktní. Pro účely definice entit receptu a~ingredience budeme považovat nutriční hodnoty za nepovinnou informaci.
+
+Za povšimnutí stojí také systém tagů. Většina datasetů s~recepty poskytuje pouze obecné tagy, které kombinují informace o~vybraných ingrediencích, typu pokrmu a~kuchyně nebo dietě, jejíž pravidla recept splňuje. V~aplikaci s~těmito tagy budeme pracovat pouze na úrovni jejich jména, do budoucna bychom ale mohli přidat rozšíření v~podobném stylu, jako u~ingrediencí namapovaných na entity znalostních grafů. Do skupiny tagů můžeme zařadit také klíčová slova nebo kategorie receptů, nebudeme pro ně tedy zakládat vlastní entity.
+
+\begin{figure}[p]\centering
+\includegraphics[width=145mm]{../img/conceptual-diagram}
+\caption{Konceptuální UML class diagram domény receptů.}
+\label{obr01:conceptual-diagram}
+\end{figure}

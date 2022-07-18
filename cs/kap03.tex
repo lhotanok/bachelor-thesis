@@ -138,7 +138,7 @@ U~datasetu z~Allrecipes máme zjednodušenou práci, neboť strukturované ingre
 
 Ingrediencím potřebujeme přiřadit identifikátor a~ideálně se budeme snažit vyhnout duplicitě s~ingrediencemi z~Food.com, až je budeme ukládat do databáze spolu s~rozšířením z~DBpedia a~Wikidata. Vygenerujeme si tedy uuid pro celou naši aplikaci, které budeme využívat jako tzv.~\emph{seed} pro vytvoření dalších identifikátorů. Zde se nám bude hodit knihovna \texttt{uuid}\footnote{https://www.npmjs.com/package/uuid} a~její funkce \texttt{v5}:
 \begin{code}
-uuid.v5(name.toLowerCase(), NAMESPACE_UUID)}
+uuid.v5(name.toLowerCase(), NAMESPACE_UUID)
 \end{code}
 %$
 Pokud takto vytvoříme identifikátory surovin stejného jména, namapují se na stejné uuid a vyhneme se duplicitě.
@@ -245,7 +245,7 @@ V~rámci skriptu \texttt{documents-manager.js} jsou načteny dokumenty receptů 
     \item Nahrajeme dokumenty s~vyplněnými položkami \texttt{\underline{{ }}ingredientsFacet} do Solr.
 \end{enumerate}
 
-Pro snadnější nalezení filtrů na základě určitého zaměření vytvoříme vlastní kolekce klíčových slov pomocí manuální kontroly existujících tagů. Například recepty z~Food.com mají v~rámci tagů přiřazeny názvy kuchyní, typ pokrmu nebo dietní kategorii. Naším úkolem bude tato klíčová slova identifikovat a~přesunout z~obecných tagů do vlastních skupin, které budou v~uživatelském rozhraní odpovídat samostatným filtrům.
+Pro snadnější nalezení filtrů na základě určitého zaměření vytvoříme vlastní kolekce klíčových slov pomocí manuální kontroly existujících tagů. Například recepty z~Food.com mají v~rámci tagů přiřazeny názvy kuchyní, typ pokrmu nebo dietní kategorii. Naším úkolem bude tato klíčová slova identifikovat a~přesunout z~obecných tagů do vlastních skupin samostatných filtrů.
 
 \subsection{Vyhledávací dotazy}
 
@@ -406,7 +406,7 @@ Jak napovídá název, obsah adresářů \texttt{pages} bude souviset s~jednotli
 
 Zbylé stavební komponenty aplikace jsou rozmístěny v~adresářích \texttt{components}. Při jejich tvorbě se snažíme uplatňovat již zmíněný princip jedné odpovědnosti a~provádět dekompozici příliš komplexních komponent. Také využijeme architekturu callback funkcí, které budeme posílat skrze props do vnořených komponent a~aktivujeme je na základě událostí spravovaných vnořenými komponentami (například stisku tlačítka). V~některých případech bude muset callback projít přes více komponent.
 
-API dokumentace jednotlivých komponent je dostupná v~adresáři \texttt{docs} skrze soubor \texttt{index.html}, případně na domovské stránce\footnote{https://lhotanok.github.io/MeaLinker} projektu implementované pomocí GitHub Pages. Adresář \texttt{docs} musí být umístěn v~kořeni repositáře pro kompatibilitu s~GitHub Pages. Dokumentace byla vygenerována pomocí nástroje React Styleguidist\footnote{https://github.com/styleguidist/react-styleguidist} spuštěním příkazu \texttt{npm styleguide:build} uvnitř adresáře \texttt{frontend}.
+API dokumentace jednotlivých komponent je dostupná v~adresáři \texttt{docs} skrze soubor \texttt{index.html}, případně na domovské stránce\footnote{https://lhotanok.github.io/MeaLinker} projektu implementované pomocí GitHub Pages. Adresář \texttt{docs} musí být umístěn v~kořeni repositáře pro kompatibilitu s~GitHub Pages. Dokumentace byla vygenerována nástrojem React Styleguidist\footnote{https://github.com/styleguidist/react-styleguidist} spuštěním \texttt{npm styleguide:build} uvnitř adresáře \texttt{frontend}.
 
 \subsubsection{Sdílené komponenty a~funkce}
 
@@ -445,7 +445,7 @@ V~této sekci se podíváme na vybrané aspekty klíčové funkcionality naší 
 
 \subsubsection{Fasetový našeptávač}
 
-Zadávání vyhledávacích filtrů implementujeme pomocí knihovny Material~UI a~její komponenty \texttt{Autocomplete}. Ta nabízí spoustu užitečných funkcí za cenu poměrně jednoduché konfigurace prostřednictvím props, samozřejmě má ale i~své limity. Největším omezením je pro nás maximální počet $2\,000$ položek našeptávače. Větší počet sice zakázán není, rychlost renderování seznamu položek ale rapidně klesá, což způsobuje dojem zamrznutí komponenty. My jsme přitom připravili více než $5\,000$ vyhledávacích ingrediencí, které kvůli tomuto omezení nemůžeme nabídnout v~rámci jednoho seznamu. Nicméně při ručním psaní názvu ingredience se nabízené položky aktualizují a~jejich počet brzy klesá pod povolenou hranici $2\,000$ slov. Vždy zobrazíme maximálně prvních $2\,000$ položek na základě jejich oblíbenosti, tedy dle počtu receptů, ve kterých se vyskytují.
+Zadávání vyhledávacích filtrů implementujeme pomocí knihovny Material~UI a~její komponenty \texttt{Autocomplete}. Ta nabízí spoustu užitečných funkcí za cenu poměrně jednoduché konfigurace prostřednictvím props, samozřejmě má ale i~své limity. Největším omezením je pro nás maximální počet $2\,000$ položek našeptávače. Větší počet sice zakázán není, rychlost renderování seznamu položek ale rapidně klesá, což způsobuje dojem zamrznutí komponenty. My jsme přitom připravili více než $5\,000$ vyhledávacích ingrediencí, které kvůli tomuto omezení nemůžeme nabídnout v~rámci jednoho seznamu. Při psaní názvu se ale nabízené položky aktualizují a~jejich počet brzy klesá pod povolenou hranici $2\,000$ slov. Vždy zobrazíme maximálně prvních $2\,000$ položek na základě jejich oblíbenosti, tedy dle počtu souvisejících receptů. Existuje také složitější řešení pomocí virtualizace, které by si poradilo i~s~více než $2\,000$ položkami.
 
 \subsubsection{Manuální zadávání filtrů}
 
