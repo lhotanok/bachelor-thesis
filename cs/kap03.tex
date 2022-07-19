@@ -80,17 +80,15 @@ Klíčové pro nás budou unikátní hodnoty ze sloupců \texttt{replaced} a~\te
 
 Normalizované názvy ingrediencí přidáme do receptů extrahovaných Apify actorem, což provedeme na základě informací ze souboru \texttt{RAW\underline{{ }}recipes.csv}, kde jsou propojeny recepty s~identifikátory ingrediencí. Stejným způsobem přidáme informace o~autorovi včetně jeho id. Tuto fázi má na starosti hlavní skript pro slučování dat, totiž \texttt{recipes-ingredients-merge-manager.js}.
 
-Poslední fáze patří skriptu \texttt{ingredients-postprocessing.js}, který v~adresáři \texttt{rdf-data} očekává soubor \texttt{dbpedia-ingredients.json} s~extrahovanými ingrediencemi z~grafu DBpedia a~soubor \texttt{wikidata-ingredients.json} s~přísadami z~Wikidata. Ty generuje skript \texttt{rdf-data/external-dataset-linker.js}, který potřebuje soubory ve formátu N-triples \texttt{rdf-data/food-dbpedia-same-ingr.nt} a~\texttt{rdf-data/food-wikidata-same-ingr.nt} vytvořené pomocí Silk Workbench. Konfigurace linkování extrahovaná z~grafického rozhraní Silk Workbench je uložena v XML souborech ve stejném adresáři.
+Poslední fáze patří skriptu \texttt{ingredients-postprocessing.js}, který v~adresáři \texttt{rdf-data} očekává soubor \texttt{dbpedia-ingredients.json} s~extrahovanými ingrediencemi z~grafu DBpedia a~soubor \texttt{wikidata-ingredients.json} s~přísadami z~Wikidata. Ty generuje skript \texttt{rdf-data/external-dataset-linker.js}, který potřebuje soubory v~RDF formátu N-triples \texttt{rdf-data/dbpedia-links.nt} a~\texttt{rdf-data/wikidata-links.nt} vytvořené pomocí Silk Workbench. Konfigurace linkování extrahovaná z~grafického rozhraní Silk Workbench je uložena v XML souborech ve stejném adresáři.
 
 Výstupem našeho řetězce zpracování jsou následující soubory:
-
 \begin{code}
 recipes/extended_recipes.json
 ingredients/extended_ingredients.json
 ingredients/search_ingredients.json
 \end{code}
 %$
-
 První $2$~uvedené soubory jsou určeny pro uložení do databáze CouchDB a~poslední soubor najde uplatnění při tvorbě fasetových ingrediencí receptů uložených v~Solr. Skripty pro jednotlivé fáze zpracování jsou soustředěny v souborech \texttt{run} a \texttt{run-venv} vyžadující aktivované prostředí pro vývoj v~Pythonu.
 
 \subsection{Allrecipes}
