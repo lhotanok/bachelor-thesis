@@ -344,11 +344,9 @@ const root = createRoot(
 );
 
 root.render(
-  <StrictMode>
     <BrowserRouter>
       <App />
-    </BrowserRouter>
-  </StrictMode>,
+    </BrowserRouter>,
 );
 \end{code}
 %$
@@ -420,7 +418,7 @@ Kromě \texttt{types}, \texttt{components} a~\texttt{hooks} jsou do adresáře \
 
 Mechanismus cachování má potenciál zrychlit načítání výsledků při listování více stranami receptů a~také během navigace v~historii prohlížeče, ať už v~rámci vyhledávací stránky nebo během návratu z~detailu receptu. Na druhou stranu do aplikace zanáší dodatečnou komplexitu. Původní návrh proto cachování nezahrnoval, neboť se očekávalo, že častějším scénářem vyhledávání bude spíše experimentování s~různými filtry než prohlížení spousty stránek výsledků se stejnými filtry. Při rychlém střídání filtrů totiž běžné cachování nepomůže, bylo by potřeba implementovat složitější řešení s~cachováním nejčastějších dotazů.
 
-Nicméně na základě průběžného uživatelského testování se absence cachování ukázala jako kritická, zejména kvůli ztrátě pozice ve vyhledávaných výsledcích po otevření receptu. V~reakci na tento podnět byla do aplikace zapojena knihovna \emph{React Activation}\footnote{https://www.npmjs.com/package/react-activation}, která poskytuje cachování prostřednictvím komponent \texttt{AliveScope} a~\texttt{KeepAlive}. Ty jsou vloženy do komponenty \texttt{App}, přičemž každá obrazovka má svou vlastní cache identifikovanou pomocí vlastnosti \texttt{cacheKey}.
+Nicméně na základě průběžného uživatelského testování se absence cachování ukázala jako kritická, zejména kvůli ztrátě pozice ve vyhledávaných výsledcích po otevření receptu. V~reakci na tento podnět byla do aplikace zapojena knihovna \emph{React Activation}\footnote{https://www.npmjs.com/package/react-activation}, která poskytuje cachování prostřednictvím komponent \texttt{AliveScope} a~\texttt{KeepAlive}. Komponenta \texttt{AliveScope} je rodičem komponenty \texttt{Routes} a~každá obrazovka má svou vlastní komponentu \texttt{KeepAlive} včetně cache identifikované pomocí vlastnosti \texttt{cacheKey}.
 
 Komponenta \texttt{KeepAlive} mimo jiné spravuje automatické posouvání obrazovky dle posledního uloženého stavu. Tím řeší zmíněný problém se ztracenou pozicí ve vyhledávání, v~některých situacích ale přináší komplikace, které je potřeba manuálně vyřešit. Nelogické posouvání obrazovky bylo vypozorováno například v následujícím scénáři:
 
@@ -437,7 +435,7 @@ Při prvním otevřením receptu byla obrazovka korektně posunuta nahoru díky 
 
 Problém vyřešíme vysunutím funkce posouvání obrazovky mimo dosah komponenty \texttt{KeepAlive} pro \texttt{RecipeDetail}. Zároveň ji ale necháme uvnitř příslušné komponenty \texttt{Route}. Při otevření detailu receptu tak bude obrazovka vždy posunuta směrem nahoru, což je pro potřeby naší aplikace vyhovující. Díky tomuto invariantu navíc můžeme obrazovku posouvat nahoru i~při otevření ingredience již na stránce receptu. Na stránce ingredience totiž stav posunutí obrazovky uchovávat musíme kvůli obsaženému seznamu receptů, který funguje stejně jako domovská vyhledávací stránka.
 
-Také byly objeveny problémy s~prvním načtením stránky ingredience po obnovení karty prohlížeče a přetrvávající komponentou \texttt{Tooltip} při otevření detailu ingredience. Tyto situace byly ošetřeny, nicméně funkce cachování vyžaduje další testování a to jak ve vývojářském, tak produkčním módu aplikace. Vývojářský režim totiž kvůli striktnímu módu renderuje všechny komponenty dvakrát, což může  mechanismus cachování zmást. Ideální by bylo navrhnout řešení na míru, které by nahradilo generickou knihovnu React Activation. Kvůli omezenému času tento krok delegujeme na další vývoj.
+Také byly objeveny problémy s~prvním načtením stránky ingredience po obnovení karty prohlížeče a přetrvávající komponentou \texttt{Tooltip} při otevření detailu ingredience. Tyto situace byly ošetřeny, nicméně funkce cachování vyžaduje další testování a~to jak ve vývojářském, tak produkčním módu aplikace. Není totiž výjimkou, že se chování vývojářského a~produkčního režimu liší. Zejména pokud je aktivován striktní režim komponentou \texttt{StrictMode}, který všechny komponenty renderuje ve vývojářském módu dvakrát. Kvůli tomuto režimu bylo cachování příliš nekonzistentní, byl tedy z~komponenty \texttt{Index} odebrán. Ideální by bylo navrhnout řešení na míru, které by nahradilo generickou knihovnu React Activation. Kvůli omezenému času tento krok delegujeme na další vývoj.
 
 \subsection{Komunikace přes REST~API}
 

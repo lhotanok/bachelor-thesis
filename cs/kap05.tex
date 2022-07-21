@@ -1,6 +1,6 @@
 \chapter{Uživatelská dokumentace}
 
-Aplikace slouží k~vyhledávání receptů pocházejících z~různých webových stránek s~recepty. Aktuálně nabízí recepty ze stránek Food.com a~Allrecipes. Recepty je možné prohlížet přímo v~aplikaci, nechybí ale ani odkazy na zdroj, kde jsou k~dispozici detailnější informace včetně recenzí, doprovodných videí nebo dalších příspěvků autora receptu. Pro vybrané ingredience jsou k~dispozici rozšiřující informace, ke kterým se lze dostat přes detail receptu a~jeho seznam surovin.
+Aplikace slouží k~vyhledávání receptů pocházejících z~různých webových stránek s~recepty. Recepty je možné prohlížet přímo v~aplikaci, nechybí ale ani odkazy na zdroj, kde jsou k~dispozici detailnější informace včetně recenzí, doprovodných videí nebo dalších příspěvků autora receptu. Pro vybrané ingredience jsou k~dispozici rozšiřující informace, ke kterým se lze dostat ze stránky receptu. V~aplikaci funguje navigace pomocí vestavěných tlačítek \texttt{Zpět} a~\texttt{Vpřed} v~prohlížeči. 
 
 \section{Vyhledávání receptů}
 
@@ -12,13 +12,13 @@ Při otevření domovské stránky aplikace na adrese \texttt{/recipes} se zobra
 \label{obr05:homepage}
 \end{figure}
 
+Aplikace umožňuje vyhledávání receptů upřesnit na základě různých kritérií. Největší důraz je kladen na vyhledávání podle ingrediencí, v~nabídce je ale také filtrování pomocí klíčových slov, kuchyně, typu pokrmu, času přípravy a~diety. Filtry lze libovolně kombinovat a~pro lepší orientaci je u~každé hodnoty napsán počet receptů, které se po přidání tohoto filtru zobrazí. Tomuto stylu vyhledávání se říká fasetová navigace.
+
 \begin{figure}[h!]\centering
 \includegraphics[width=140mm]{../img/pagination}
 \caption{Stránkování zpřístupňující všechny nalezené recepty.}
 \label{obr05:pagination}
 \end{figure}
-
-Aplikace umožňuje vyhledávání receptů upřesnit na základě různých kritérií. Největší důraz je kladen na vyhledávání podle ingrediencí, v~nabídce je ale také filtrování pomocí klíčových slov, kuchyně, typu pokrmu, času přípravy a~diety. Filtry lze libovolně kombinovat a~pro lepší orientaci je u~každé hodnoty napsán počet receptů, které se po přidání tohoto filtru zobrazí. Tomuto stylu vyhledávání se říká fasetová navigace.
 
 Filtry se vždy zobrazují na dvou místech --- v~původním formuláři, do kterého byly vyplněny, ale také pod nadpisem s~počtem vyhledaných receptů. Zde jsou shromážděné filtry ze všech kategorií a~pomocí tlačítka s~ikonou koše je lze snadno odstranit všechny najednou, viz obrázek \ref{obr05:filter-search}. Filtry lze odstranit na libovolném z~těchto míst a~změna se okamžitě projeví i~na místě druhém. Každá změna filtru, ať už přidání nového nebo odebrání stávajícího, spustí automatické vyhledávání receptů. U~filtrů kuchyně a~času přípravy nelze zadat více hodnot najednou.
 

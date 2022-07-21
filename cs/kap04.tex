@@ -1,14 +1,12 @@
-%%% Fiktivní kapitola s instrukcemi k PDF/A
-
 \chapter{Testování}
 
 \section{Uživatelské testování}
 
-Uživatelské rozhraní a celkový dojem z aplikace otestujeme pomocí rozšířené metody System Usability Scale, označované zkráceně jako SUS \citep{sus-test}. Tuto metodu představil John Brooke již v roce $1986$, stále je ale velmi aktuální, o čemž svědčí například její zmínka ve více než $1300$ publikacích.
+Uživatelské rozhraní a~celkový dojem z~aplikace otestujeme pomocí rozšířené metody System Usability Scale, označované zkráceně jako SUS \citep{sus-test}. Tuto metodu představil John Brooke již v~roce $1986$, stále je ale velmi aktuální, o~čemž svědčí například její zmínka ve více než $1300$ publikacích.
 
-Účastníkům testování nejprve představíme základní funkce, tedy vyhledávání receptů pomocí různých filtrů, zobrazení detailu receptu s odkazy na rozšířené informace o ingrediencích a obsah stránky s detailem ingredience. Následně jim uložíme několik úkolů, které je přimějí seznámit se s aplikací více do hloubky. Po splnění úkolů necháme uživatele vyplnit standardizovaný dotazník s $10$ otázkami a na základě odpovědí vypočteme koeficient úspěšnosti.
+Účastníkům testování nejprve představíme základní funkce, tedy vyhledávání receptů pomocí různých filtrů, zobrazení detailu receptu s~odkazy na rozšířené informace o~ingrediencích a~obsah stránky s~detailem ingredience. Následně jim uložíme několik úkolů, které je přimějí seznámit se s~aplikací více do hloubky. Po splnění úkolů necháme uživatele vyplnit standardizovaný dotazník s~$10$ otázkami a~na základě odpovědí vypočteme koeficient úspěšnosti.
 
-Výsledné skóre dotazníku se pohybuje v rozmezí od $0$ do $100$, nejedná se ale o procentuální stupnici, jak by se mohlo na první pohled zdát. Důležitá je hranice $68$ bodů. Pokud je překročena, použitelnost systému je hodnocena jako nadprůměrná. Skóre lze dále normalizovat pro přesnější interpretaci výsledků, viz~obrázek \ref{obr04:sus-score-system}. Nám vyšlo na základě odpovědí $4$ respondentů průměrné skóre $93,125$, což lze považovat za velmi dobrý výsledek. Detaily výpočtu a~konkrétní odpovědi z~dotazníku jsou umístěny v~příloze.
+Výsledné skóre dotazníku se pohybuje v rozmezí od $0$ do $100$, nejedná se ale o~procentuální stupnici, jak by se mohlo na první pohled zdát. Důležitá je hranice $68$ bodů. Pokud je překročena, použitelnost systému je hodnocena jako nadprůměrná. Skóre lze dále normalizovat pro přesnější interpretaci výsledků, viz~obrázek \ref{obr04:sus-score-system}. Nám vyšlo na základě odpovědí $4$ respondentů průměrné skóre $93,125$, což lze považovat za velmi dobrý výsledek. Detaily výpočtu a~konkrétní odpovědi z~dotazníku jsou umístěny v~příloze.
 
 \begin{figure}[h!]\centering
 \includegraphics[width=140mm]{../img/sus-score-system}
@@ -33,20 +31,13 @@ Uživatelům zadáme následující úlohy, které simulují běžné využívá
 Nezávisle na SUS dotazníku jsme požádali testující také o~celkovou zpětnou vazbu a~nápady na vylepšení v~rámci dalšího vývoje. Celkový dojem z~používání aplikace byl pozitivní, obdrželi jsme ale řadu připomínek a~návrhů, díky kterým by práce s~aplikací byla pohodlnější a~jednodušší. Výběr nejdůležitějších z~nich, které budou vyřešeny přednostně:
 
 \begin{enumerate}
-    \item Při aktivním filtru kuchyně by se měl po kliknutí na element našeptávače zobrazit seznam ostatních kuchyní, stejně jako u~ostatních filtrů. Doprovodná zpráva \emph{No more filters} je navíc zavádějící a~sémanticky nepřesná.
-    \item Při otevřeném receptu nebo ingredienci by měla být v~horní části stránky možnost navigace, aby uživatel nemusel využívat tlačítko \texttt{Zpět} ve webovém prohlížeči, které je zbytečně daleko a~ruší dojem single-page aplikace.
-    \item Při návratu na vyhledávací stránku z~detailu receptu by se nemělo vyhledávání spouštět nanovo a~kurzor by se měl automaticky vrátit na poslední otevřený výsledek. Tento nedostatek byl patrný při otevírání většího počtu vyhledaných receptů.
+    \item Při otevřeném receptu nebo ingredienci by měla být v~horní části stránky možnost navigace, aby uživatel nemusel využívat tlačítko \texttt{Zpět} ve webovém prohlížeči, které je zbytečně daleko a~ruší dojem single-page aplikace. Aktuální navigace v~podobě \emph{breadcrumbs} na stránce receptu je pro tento scénář nedostačující, neboť při otevření kategorie \texttt{Recipes} jsou ztraceny původní vyhledávací filtry.
+    \item Názvy některých ingrediencí z~našeptávače pro vyhledávání obsahují překlepy nebo gramatické chyby.
+    \item Řada kategorií na stránkách ingrediencí je příliš odborná a~do aplikace tohoto typu se spíše nehodí.
+    \item Měly by být k~dispozici další jazykové lokalizace. Spoustu anglických termínů ingrediencí a~klíčových slov běžný uživatel nezná, pokud není rodilý mluvčí.
 \end{enumerate}
 
-\subsubsection{Reakce na zpětnou vazbu}
-
-Pro vysvětlení okolností prvního bodu, filtr kuchyně a~času přípravy se od ostatních liší tím, že lze zadat pouze jeden z~této kategorie. Našeptávač zároveň vždy ukazuje pouze ty nabídky, které generují aspoň $1$~výsledek a~zároveň menší počet výsledků, než je zobrazeno současně. 
-
-\begin{enumerate}
-    \item Zobrazení všech možností kuchyní nebo časů přípravy je problematické kvůli konceptu fasetového vyhledávání. Museli bychom vyhledávání rozdělit na $2$ požadavky, jeden včetně zadané kuchyně a~druhý bez tohoto filtru. Z~prvního požadavku bychom si vzali výsledky vyhledávání včetně připravených fasetů pro všechny filtry kromě kuchyní. Ze druhého pak speciálně jen fasetové kategorie kuchyní.
-    \item Druhou připomínku můžeme snadno vyřešit pomocí komponenty známé jako \emph{breadcrumbs} v~horní části obrazovky. Hierarchie by mohla mít následující formát: \texttt{Recipes\,>\,Recipe\,Name}.
-    \item Poslední zmíněná výtka se týká cachování, které jsme v~první fázi aplikace vynechali pro zjednodušení a~díky dostatečné rychlosti komunikace se Solr. Nicméně rozhodně se jedná o~důležitou funkci z~pohledu plynulosti prohlížení, je tedy v~pořadníku dalšího vývoje. Aktuálně se kurzor automaticky posouvá na první řádku výsledků při změně strany. Zvážíme také načítání pomocí nekonečného posouvání, díky kterému by uživatel nemusel přeskakovat mezi okraji stránky jako při implementaci pomocí stránkování.
-\end{enumerate}
+Kromě závěrečného testování probíhaly také průběžné konzultace, na základě kterých byla do aplikace přidána funkce cachování, dále byly opraveny chyby s~nesprávně namapovanými ingrediencemi a~byl zkorigován vzhled aplikace.
 
 \section{Výkonnostní testování}
 
