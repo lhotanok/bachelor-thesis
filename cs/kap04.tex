@@ -8,7 +8,7 @@ Uživatelské rozhraní a celkový dojem z aplikace otestujeme pomocí rozšíř
 
 Účastníkům testování nejprve představíme základní funkce, tedy vyhledávání receptů pomocí různých filtrů, zobrazení detailu receptu s odkazy na rozšířené informace o ingrediencích a obsah stránky s detailem ingredience. Následně jim uložíme několik úkolů, které je přimějí seznámit se s aplikací více do hloubky. Po splnění úkolů necháme uživatele vyplnit standardizovaný dotazník s $10$ otázkami a na základě odpovědí vypočteme koeficient úspěšnosti.
 
-Výsledné skóre dotazníku se pohybuje v rozmezí od $0$ do $100$, nejedná se ale o procentuální stupnici, jak by se mohlo na první pohled zdát. Důležitá je hranice $68$ bodů --- pokud je překročena, použitelnost systému je hodnocena jako nadprůměrná. Skóre lze dále normalizovat pro přesnější interpretaci výsledků viz obrázek \ref{obr04:sus-score-system}. Nám vyšlo celkové skóre $92,5$, což lze považovat za velmi dobrý výsledek. Detaily výpočtu a~konkrétní odpovědi z~dotazníku jsou umístěny v~příloze.
+Výsledné skóre dotazníku se pohybuje v rozmezí od $0$ do $100$, nejedná se ale o procentuální stupnici, jak by se mohlo na první pohled zdát. Důležitá je hranice $68$ bodů. Pokud je překročena, použitelnost systému je hodnocena jako nadprůměrná. Skóre lze dále normalizovat pro přesnější interpretaci výsledků, viz~obrázek \ref{obr04:sus-score-system}. Nám vyšlo na základě odpovědí $4$ respondentů průměrné skóre $93,125$, což lze považovat za velmi dobrý výsledek. Detaily výpočtu a~konkrétní odpovědi z~dotazníku jsou umístěny v~příloze.
 
 \begin{figure}[h!]\centering
 \includegraphics[width=140mm]{../img/sus-score-system}
@@ -23,7 +23,7 @@ Uživatelům zadáme následující úlohy, které simulují běžné využívá
 \begin{enumerate}
     \item Najděte recepty, které obsahují kuřecí prsa, rajčata a~parmazán a~je možné je připravit do $3/4$ hodiny. Poté vyhledávání změňte na recepty, které lze připravit do $1$~a~půl hodiny.
     \item Najděte nejrychlejší veganské recepty vhodné pro přípravu snídaně.
-    \item Zadejte libovolné filtry a~projděte výsledky vyhledávání na první a~druhé straně. Vyberte $5$~receptů, které vás nejvíce zaujaly a~zběžně projděte jejich obsah včetně postupu přípravy.
+    \item Zadejte libovolné filtry a~projděte výsledky vyhledávání na první a~druhé straně. Vyberte $3$~recepty, které vás nejvíce zaujaly a~zběžně projděte jejich obsah včetně postupu přípravy.
     \item Najděte recepty z~mexické kuchyně s vysokým obsahem bílkovin a~nízkým obsahem sacharidů. Bez otevření detailů zjistěte, z~jakých ingrediencí jsou vyrobeny.
     \item Prozkoumejte ingredience na stránce vybraného receptu a~najděte suroviny ze stejných kategorií.
 \end{enumerate}
@@ -62,17 +62,17 @@ Podíváme se na rychlost získávání dat ze serverové části aplikace, rend
 
 \subsubsection{Vyhledávání receptů}
 
-Testy ukázaly, že obsah DOM pro obrazovku s~vyhledáváním receptů je bez zadání jakýchkoli filtrů načten průměrně za $0,5\,$s. Z toho přibližně $130\,$ms trvá získání receptů ze Solr. Vyžádáme si sice pouze $24$ receptů, chceme ale znát celkový počet pro aktuální vyhledávací dotaz. Kvůli tomu trvá zpracování dotazu na všechny recepty delší dobu než vyhledávání s~omezujícím filtrem nebo více filtry.
+Testy ukázaly, že obsah DOM pro obrazovku s~vyhledáváním receptů je bez zadání jakýchkoli filtrů načten průměrně za $0,5\,$s. Z toho přibližně $180\,$ms trvá získání receptů ze Solr. Vyžádáme si sice pouze $24$ receptů, chceme ale znát celkový počet pro aktuální vyhledávací dotaz. Kvůli tomu trvá zpracování dotazu na všechny recepty delší dobu než vyhledávání s~omezujícím filtrem nebo více filtry.
 
-Z~filtrovacích dotazů jsme nejprve testovali ingredienci \texttt{Cheese}, pro kterou je k~dispozici téměř $23\,000$ receptů. Zpracování tohoto dotazu trvalo průměrně $60\,$ms, tedy o~více než polovinu kratší dobu oproti vyhledávání všech receptů. Se zadáváním dalších filtrů klesá čas potřebný pro získání dat až na průměrných $12\,$s pro dotaz filtrující právě $1$~recept. Tento klesající trend je pro naši aplikaci příznivý, neboť cílíme na specifické filtrování pomocí většího množství kritérií. Nicméně pokud bychom datovou sadu s~recepty výrazně rozšiřovali, museli bychom optimalizovat dotaz na všechny výsledky bez zadaných filtrů. Jeho zpracování by bez optimalizace trvalo příliš dlouho, což by bylo krajně nevhodné, neboť se jedná o~dotaz aktivovaný automaticky při otevření domovské stránky a~tedy první interakci uživatele s~aplikací.
+Z~filtrovacích dotazů jsme nejprve testovali ingredienci \texttt{Cheese}, pro kterou je k~dispozici téměř $23\,000$ receptů. Zpracování tohoto dotazu trvalo průměrně $115\,$ms, tedy přibližně o třetinu kratší dobu oproti vyhledávání všech receptů. Se zadáváním dalších filtrů klesá čas potřebný pro získání dat až na průměrných $25\,$ms pro dotaz filtrující právě $1$~recept. Tento klesající trend je pro naši aplikaci příznivý, neboť cílíme na specifické filtrování pomocí většího množství kritérií. Nicméně pokud bychom datovou sadu s~recepty výrazně rozšiřovali, museli bychom optimalizovat dotaz na všechny výsledky bez zadaných filtrů. Jeho zpracování by bez optimalizace trvalo příliš dlouho, což by bylo krajně nevhodné, neboť se jedná o~dotaz aktivovaný automaticky při otevření domovské stránky a~tedy první interakci uživatele s~aplikací.
 
 \subsubsection{Detail receptu}
 
-Získání dat receptu na základě id trvá průměrně $8\,$ms. Načtení DOM pak $0,24\,$s. Z~následného vykreslení obvykle připadne nejdelší čas (kolem $0,85\,$s) na popis receptu, pokud je text delší.
+Získání dat receptu na základě id trvá průměrně $10\,$ms. Načtení DOM pak $0,24\,$s. Z~následného vykreslení obvykle připadne nejdelší čas (kolem $0,85\,$s) na popis receptu, pokud je text delší.
 
 \subsubsection{Detail ingredience}
 
-Načtení dokumentu ingredience z~backendu trvá stejně jako u~receptu přibližně $8\,$ms a~načtení DOM asi $0,3\,$s. Maximální čas vykreslení je opět spotřebován renderováním popisu (pro ingredienci \texttt{Beef} se jednalo o~$0,72\,$s).
+Načtení dokumentu ingredience z~backendu trvá stejně jako u~receptu přibližně $10\,$ms a~načtení DOM asi $0,3\,$s. Maximální čas vykreslení je opět spotřebován renderováním popisu (pro ingredienci \texttt{Beef} se jednalo o~$0,72\,$s).
 
 \subsubsection{Vizuální stabilita}
 

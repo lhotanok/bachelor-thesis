@@ -32,7 +32,7 @@ Jako zdroje receptů jsme si zvolili webové aplikace Food.com a~Allrecipes. Pro
 
 \subsection{Food.com}
 
-Propojení dat se statickým datasetem Food.com Recipes and~Interactions nám do projektu zanese poměrně velkou komplexitu ve srovnání s~pouhou extrakcí dat z~webové aplikace, kterou využijeme u~stránky Allrecipes. Pro zpracování dat z~aplikace Food.com nemůžeme využít stejný přístup jako s~Allrecipes, protože neposkytuje plně strukturované ingredience (odděluje pouze množství od ostatního textu). Výrazná výhoda zpracování dat z~Food.com je v~jejich kvantitě, která s~více než $500\,000$ recepty $10\times$ převyšuje aplikaci Allrecipes a~tvoří polovinu obsahu největšího datasetu s~recepty Recipe1M+. Také poskytuje detailní informace přibližně k~$900$ ingrediencím na adrese \texttt{food.com/about}. Tyto data sice extrahovat nebudeme, počet ingrediencí s~detaily je pro nás ale užitečným vodítkem z~pohledu propojení s~otevřenými daty surovin.
+Propojení dat se statickým datasetem Food.com Recipes and~Interactions do projektu vnáší poměrně velkou komplexitu ve srovnání s~pouhou extrakcí dat z~webové aplikace, kterou využijeme u~stránky Allrecipes. Pro zpracování dat z~aplikace Food.com nemůžeme využít stejný přístup jako s~Allrecipes, protože neposkytuje plně strukturované ingredience (odděluje pouze množství od ostatního textu). Výrazná výhoda zpracování dat z~Food.com je v~jejich kvantitě, která s~více než $500\,000$ recepty $10\times$ převyšuje aplikaci Allrecipes a~tvoří polovinu obsahu největšího datasetu s~recepty Recipe1M+. Také poskytuje detailní informace přibližně k~$900$ ingrediencím na adrese \texttt{food.com/about}. Tato data sice extrahovat nebudeme, počet ingrediencí s~detaily je pro nás ale užitečným vodítkem z~pohledu propojení s~otevřenými daty surovin.
 
 Dataset Food.com Recipes and~Interactions obsahuje kolem $8\,000$ unikátních ingrediencí extrahovaných a~normalizovaných přímo z~jednotlivých receptů. Tyto normalizované ingredience budou po čištění velmi dobrým podkladem pro fasetový našeptávač ingrediencí na vyhledávací stránce. Využijeme je pro vyhledávání receptů z~libovolných zdrojů. Alternativně bychom mohli využít externí seznam ingrediencí, ať už z~aplikace Food.com nebo z~otevřených znalostních grafů. Počet navrhovaných přísad by ale byl výrazně menší.
 
@@ -354,7 +354,7 @@ root.render(
 %$
 \endgroup
 
-Zbývající část architektury \ref{obr02:react-app} je implementována komponentou \texttt{App}, která rozděluje strukturu aplikace na hlavičku, hlavní obsah uvnitř tagu \texttt{<main>} a~patičku. Odpovídající komponenty jsou vnořeny do komponenty \texttt{ThemeProvider}, která umožňuje používat prvky zadefinovaného tématu kdekoli v~aplikaci. Naše téma bude sestávat pouze z~palety s~primární a~sekundární barvou. Zjednodušená struktura komponenty \texttt{App} v~kódu vypadá následovně (proměnná \texttt{theme} je vytvořena před samotnou komponentou):
+Zbývající část architektury \ref{obr02:react-app} je implementována komponentou \texttt{App}, která rozděluje strukturu aplikace na hlavičku, hlavní obsah uvnitř tagu \texttt{<main>} a~patičku. Odpovídající komponenty jsou vnořeny do komponenty \texttt{ThemeProvider}, která umožňuje používat prvky zadefinovaného tématu kdekoli v~aplikaci. Naše téma bude sestávat pouze z~palety s~primární a~sekundární barvou. Zjednodušená struktura kódu komponenty \texttt{App} vypadá následovně (proměnná \texttt{theme} je vytvořena před samotnou komponentou):
 
 \begingroup
 \samepage
@@ -416,6 +416,29 @@ Posledním podadresářem uvnitř \texttt{src} je adresář \texttt{shared}. Naj
 \end{itemize}
 Kromě \texttt{types}, \texttt{components} a~\texttt{hooks} jsou do adresáře \texttt{shared} přesunuty pomocné funkce z~různých částí aplikace. Jejich soubory jsou soustředěny v~podadresáři \texttt{tools} a~mohou mít běžnou koncovku \texttt{ts}, ale i~rozšířenou \texttt{tsx}, pokud pracují s~parametry nebo návratovými hodnotami typu \texttt{JSX.Element}.
 
+\subsubsection{Integrace cachování}
+
+Mechanismus cachování má potenciál zrychlit načítání výsledků při listování více stranami receptů a~také během navigace v~historii prohlížeče, ať už v~rámci vyhledávací stránky nebo během návratu z~detailu receptu. Na druhou stranu do aplikace zanáší dodatečnou komplexitu. Původní návrh proto cachování nezahrnoval, neboť se očekávalo, že častějším scénářem vyhledávání bude spíše experimentování s~různými filtry než prohlížení spousty stránek výsledků se stejnými filtry. Při rychlém střídání filtrů totiž běžné cachování nepomůže, bylo by potřeba implementovat složitější řešení s~cachováním nejčastějších dotazů.
+
+Nicméně na základě průběžného uživatelského testování se absence cachování ukázala jako kritická, zejména kvůli ztrátě pozice ve vyhledávaných výsledcích po otevření receptu. V~reakci na tento podnět byla do aplikace zapojena knihovna \emph{React Activation}\footnote{https://www.npmjs.com/package/react-activation}, která poskytuje cachování prostřednictvím komponent \texttt{AliveScope} a~\texttt{KeepAlive}. Ty jsou vloženy do komponenty \texttt{App}, přičemž každá obrazovka má svou vlastní cache identifikovanou pomocí vlastnosti \texttt{cacheKey}.
+
+Komponenta \texttt{KeepAlive} mimo jiné spravuje automatické posouvání obrazovky dle posledního uloženého stavu. Tím řeší zmíněný problém se ztracenou pozicí ve vyhledávání, v~některých situacích ale přináší komplikace, které je potřeba manuálně vyřešit. Nelogické posouvání obrazovky bylo vypozorováno například v následujícím scénáři:
+
+\begin{enumerate}
+    \item Otevřeme vyhledávací stránku s recepty.
+    \item Posuneme obrazovku směrem dolů, abychom viděli komponentu stránkování.
+    \item Otevřeme libovolný recept.
+    \item Vrátíme se na vyhledávací stránku pomocí tlačítka \texttt{Zpět} v~prohlížeči.
+    \item Otevřeme stejný recept opětovným kliknutím (nikoli tlačítkem \texttt{Vpřed} v~prohlížeči).
+    \item Posunutí obrazovky nebylo vynulováno, tudíž v~horní části obrazovky nevidíme nadpis receptu, ale kartu s popisem přípravy.
+\end{enumerate}
+
+Při prvním otevřením receptu byla obrazovka korektně posunuta nahoru díky funkci \texttt{window.scrollTo(0,\,0)} umístěné uvnitř funkce \texttt{useEffect}, která se volá při novém renderování komponenty \texttt{RecipeDetail}. Při opětovném otevření detailu receptu se ale komponenta nerenderovala nově, neboť byl použit uložený stav. Funkci \texttt{window.scrollTo(0,\,0)} zároveň nemůžeme volat při kliknutí na kartu receptu na vyhledávací obrazovce, protože bychom posunutí provedli již v~komponentě vyhledávání. Při návratu z~detailu receptu bychom tak byli přesměrování na začátek vyhledávání.
+
+Problém vyřešíme vysunutím funkce posouvání obrazovky mimo dosah komponenty \texttt{KeepAlive} pro \texttt{RecipeDetail}. Zároveň ji ale necháme uvnitř příslušné komponenty \texttt{Route}. Při otevření detailu receptu tak bude obrazovka vždy posunuta směrem nahoru, což je pro potřeby naší aplikace vyhovující. Díky tomuto invariantu navíc můžeme obrazovku posouvat nahoru i~při otevření ingredience již na stránce receptu. Na stránce ingredience totiž stav posunutí obrazovky uchovávat musíme kvůli obsaženému seznamu receptů, který funguje stejně jako domovská vyhledávací stránka.
+
+Také byly objeveny problémy s~prvním načtením stránky ingredience po obnovení karty prohlížeče a přetrvávající komponentou \texttt{Tooltip} při otevření detailu ingredience. Tyto situace byly ošetřeny, nicméně funkce cachování vyžaduje další testování a to jak ve vývojářském, tak produkčním módu aplikace. Vývojářský režim totiž kvůli striktnímu módu renderuje všechny komponenty dvakrát, což může  mechanismus cachování zmást. Ideální by bylo navrhnout řešení na míru, které by nahradilo generickou knihovnu React Activation. Kvůli omezenému času tento krok delegujeme na další vývoj.
+
 \subsection{Komunikace přes REST~API}
 
 Jak jsme zmínili v~předchozí části, pro zajištění asynchronní komunikace se serverovou částí aplikace jsme vytvořili vlastní Hook v~podobě funkce \texttt{useHttp}. Co se týče stránek s~detaily receptů a~ingrediencí, získání dat od serveru je přímočaré --- z URL adresy získáme unikátní identifikátor, z~něj vytvoříme URL adresu pro příslušný endpoint našeho REST~API a~vyžádáme si data pomocí HTTP GET požadavku. Musíme si ale dát pozor na správné nastavení výchozích hodnot proměnných, se kterými dále pracujeme v~rámci renderování. Než se nám data načtou, nemůžeme přistupovat ke vnořeným položkám, pokud je explicitně nezadefinujeme v~rámci výchozí hodnoty. Pokud bychom například načítali data receptu do proměnné \texttt{recipe} a~její výchozí hodnotu nastavili na \texttt{null}, nemohli bychom pracovat s~položkami \texttt{recipe.jsonld} a~\texttt{recipe.structured} před tím, než data skutečně dorazí. Aplikace by spadla s~běhovou chybou, neboť bychom se snažili přistoupit k~hodnotě \texttt{null.jsonld} a~\texttt{null.structured}. Proměnnou \texttt{recipe} tedy raději vytvoříme následovně:
@@ -428,18 +451,23 @@ const [recipe, setRecipe] = useState<FullRecipe>({
 } as FullRecipe);
 \end{code}
 %$
-Nyní můžeme přistupovat i~k~položkám zanořeným o~úroveň hlouběji, například \texttt{recipe.structured.ingredients}, které budou mít validní hodnotu \texttt{undefined}.
+Nyní můžeme přistupovat i~k~položkám zanořeným o~úroveň hlouběji, například k~poli ingrediencí \texttt{recipe.structured.ingredients}, které bude mít validní hodnotu \texttt{undefined}.
 \endgroup
 
-Získávání dat pro stránku vyhledávání receptů lze pojmout různými způsoby, které se liší komplexitou a~rychlostí prezentace dat uživateli. V~naší aplikaci pracujeme s~konceptem stránkování, přičemž počet výsledků na jedné stránce poměrně výrazně omezíme na $24$ výsledků z~důvodu zrychlení renderování. Při každém přidání nového filtru aktualizujeme query parametry současné URL adresy a~od endpointu \texttt{/api/recipes}, respektive \texttt{localhost:5000/api/recipes}, si vyžádáme nové výsledky. Během vývoje aplikace pracujeme výhradně na adrese \texttt{localhost}, nelze tedy reálně otestovat, za jak dlouho dorazí odpověď, pokud je dotaz poslán ze zařízení klienta na vzdálený server. V~případě komunikace v~rámci \texttt{localhost} trvá zpracování dotazu přibližně $50\,$ms. Máme tedy desetinásobnou rezervu vzhledem k~požadavku získání dat do $500\,$ms, což by mělo být dostačující. V~opačném případě bychom museli implementovat mechanismus cachování.
-
-\subsubsection{Možnosti cachování}
-
-Cachování by zrychlilo načítání výsledků při listování více stranami receptů a~také během navigace v~historii prohlížeče. Na druhou stranu by zaneslo do aplikace dodatečnou komplexitu. Očekáváme, že častějším scénářem vyhledávání bude spíše experimentování s~různými filtry než prohlížení spousty stránek výsledků se stejnými filtry. Při rychlém střídání filtrů nám běžné cachování nepomůže, museli bychom implementovat složitější řešení s~cachováním nejčastějších dotazů. V~aktuální fázi se tedy této optimalizaci věnovat nebudeme.
+Získávání dat pro stránku vyhledávání receptů lze pojmout různými způsoby, které se liší komplexitou a~rychlostí prezentace dat uživateli. V~naší aplikaci pracujeme s~konceptem stránkování, přičemž počet výsledků na jedné stránce poměrně výrazně omezíme na $24$ výsledků z~důvodu zrychlení renderování. Při každém přidání nového filtru aktualizujeme query parametry současné URL adresy a~od endpointu \texttt{/api/recipes}, respektive \texttt{localhost:5000/api/recipes}, si vyžádáme nové výsledky. Během vývoje aplikace pracujeme výhradně na adrese \texttt{localhost}, nelze tedy reálně otestovat, za jak dlouho dorazí odpověď, pokud je dotaz poslán ze zařízení klienta na vzdálený server. V~případě komunikace v~rámci \texttt{localhost} trvá zpracování dotazu přibližně $100\,$ms. Máme tedy pětinásobnou rezervu vzhledem k~požadavku získání dat do $500\,$ms, což by mělo být dostačující. Navíc implementujeme cachování, díky kterému se výsledky již známých dotazů mohou získat od lokálního úložiště.
 
 \subsection{Implementace vyhledávání receptů}
 
-V~této sekci se podíváme na vybrané aspekty klíčové funkcionality naší aplikaci, tedy samotného vyhledávání receptů na základě filtrů.
+V~této sekci se podíváme na vybrané aspekty klíčové funkcionality naší aplikaci, tedy samotného vyhledávání receptů na základě filtrů. Aktuální verze aplikace poskytuje celkem $6$ druhů filtrů:
+
+\begin{itemize}
+    \item Ingredience
+    \item Klíčová slova
+    \item Typ kuchyně
+    \item Typ pokrmu
+    \item Čas přípravy
+    \item Typ diety
+\end{itemize}
 
 \subsubsection{Fasetový našeptávač}
 
@@ -447,13 +475,18 @@ Zadávání vyhledávacích filtrů implementujeme pomocí knihovny Material~UI 
 
 \subsubsection{Manuální zadávání filtrů}
 
-Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, zpřístupníme také vyhledávání na základě vlastních výrazů. Uživatel si tak může vybrat způsob vyhledávání, který lépe vyhovuje jeho potřebám. Častější pravděpodobně bude vyhledávání podle nabízených filtrů, u~kterých je předem známý počet výsledků. Nicméně jsou i~situace, kdy se hodí vyzkoušet vlastní filtr --- například pokud máme přesné množství nějaké suroviny, můžeme zkusit vyhledat recepty vyžadující stejné množství. Ukázky přesnějších filtrů:
+Abychom plně využili možnosti, které nabízí vyhledávací platforma Solr, zpřístupníme také vyhledávání na základě vlastních výrazů. Uživatel si tak může vybrat způsob vyhledávání, který lépe vyhovuje jeho potřebám. Častější pravděpodobně bude vyhledávání podle nabízených filtrů, u~kterých je předem známý počet výsledků. Nicméně jsou i~situace, kdy se hodí vyzkoušet vlastní filtr. Například pokud máme přesné množství nějaké suroviny, můžeme zkusit vyhledat recepty vyžadující stejné množství. 
+
+\begingroup
+\samepage
+Ukázky přesnějších filtrů:
 \begin{code}
 600 g chicken
 1/4 cup yoghurt
 2 cloves garlic
 \end{code}
 %$
+\endgroup
 
 \subsubsection{Zvýraznění ingrediencí}
 
@@ -466,4 +499,5 @@ reactStringReplace(
 );
 \end{code}
 %$
+
 Navíc musíme zkontrolovat, jestli text ingrediencí neobsahuje nějaký odkaz, například na jiný recept nebo ingredienci. Pro vyřešení odkazů potřebujeme opět zapojit funkci \texttt{reactStringReplace} a~nahradit odkaz elementem \texttt{Link}.
