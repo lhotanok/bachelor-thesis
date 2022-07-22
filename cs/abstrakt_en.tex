@@ -1,0 +1,19 @@
+%%% Šablona pro jednoduchý soubor formátu PDF/A, jako treba samostatný abstrakt práce.
+
+\documentclass[12pt]{report}
+
+\usepackage[a4paper, hmargin=1in, vmargin=1in]{geometry}
+\usepackage[a-2u]{pdfx}
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+
+\begin{document}
+
+%% Nezapomeňte upravit abstrakt.xmpdata.
+
+This thesis aims to develop a web application for searching recipes. The search for recipes is based on aggregating datasets from the existing recipe websites and extending the data using knowledge graphs. Knowledge graphs were represented by DBpedia and Wikidata projects. These were used to gather data about ingredients. Data were extracted using the Apify web scraping library and stored in the database system Apache CouchDB using the document model. The application provides the user with different options for filtering results, including faceted search. Faceted search is implemented using the Apache Solr platform. The focus is on searching based on ingredients. The web application is a single-page application implemented using the React.js library at the frontend and the Express.js framework at the backend. Both parts of the application are written in statically typed language TypeScript and exchange information through REST API.
+
+\end{document}

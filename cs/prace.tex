@@ -190,7 +190,7 @@ V~rámci fáze extrakce a~předzpracování dat je potřeba stáhnout datovou sa
 
 Ve všech adresářích obsahujících soubor \texttt{package.json} je potřeba použít příkaz \texttt{npm\,install}. Inicializace Apify actorů v~adresářích \texttt{food-com-scraper} a~\texttt{allrecipes-scraper} se provede standardními příkazy \texttt{npm\,install} a~dále \texttt{apify\,init}, který vytvoří potřebné podadresáře včetně \texttt{apify\underline{{ }}storage}. Zejména adresáře s~actory jsou zcela nezávislé na kontextu zbytku aplikace, aby bylo co nejsnadnější je v případě potřeby migrovat na cloudovou platformu Apify, pro kterou jsou primárně určeny.
 
-Dále je potřeba zkopírovat vygenerované datasety ingrediencí v RDF formátu Turtle z~adresářů \texttt{ingredients} do aplikace Silk Workbench a~vytvořit pro ně úlohy linkování s~otevřenými znalostními grafy DBpedia a~Wikidata. V~podadresářích \texttt{rdf-data} uvnitř adresářů \texttt{foodcom} a~\texttt{allrecipes} je uložen konfigurační XML soubor vygenerovaný ze Silk Workbench. Pomocí něj je možné úlohu spustit z~příkazové řádky, naše řešení ale tohoto přístupu nevyužívá. Datasety s~propojenými entitami jsou očekávány v~adresářích \texttt{rdf-data} ve formátu N-triples.
+Dále je potřeba zkopírovat vygenerované datasety ingrediencí v RDF formátu Turtle z~adresářů \texttt{ingredients} do aplikace Silk Workbench a~vytvořit pro ně úlohy linkování s~otevřenými znalostními grafy DBpedia a~Wikidata. V~podadresářích \texttt{rdf-data} uvnitř adresářů \texttt{foodcom} a~\texttt{allrecipes} jsou uloženy konfigurační XML soubory vygenerované ze Silk Workbench. Pomocí nich je možné úlohu spustit z~příkazové řádky, naše řešení ale tohoto přístupu nevyužívá. Datasety s~propojenými entitami jsou očekávány v~adresářích \texttt{rdf-data} ve formátu N-triples.
 
 \subsection{Persistence dat}
 
@@ -300,6 +300,10 @@ $Z_4 := ( \,18 + 19\,)\,\cdot\,2,5 = 92,5$
 Finální hodnocení $R$ vypočteme jako průměr výsledků jednotlivých respondentů:
 
 $R := \frac{Z_1 + Z_2 + Z_3 + Z_4}{4} = \frac{(\,92,5\,\cdot\,3\,)\,+\,95}{4} = 93,125$
+
+\section{Digitální příloha}
+
+K~práci je v~adresáři \texttt{BP\underline{{ }}LhotanovaKristyna.zip} přiložen zdrojový kód a~vygenerovaná API dokumentace komponent frontendu. Kód je rozdělen do adresářů \texttt{app} pro samotnou aplikaci a~\texttt{data} pro extrakci a~přípravu dat. Aktuální verze aplikace je veřejně k~dispozici na platformě GitHub ve vzdáleném adresáři \texttt{MeaLinker}\footnote{https://github.com/lhotanok/MeaLinker}. Statická HTML dokumentace je v~příloze uložena v~adresáři \texttt{docs} a~dále je publikovaná na stránce GitHub Pages dostupné z~GitHub adresáře projektu.
 
 \openright
 \end{document}
